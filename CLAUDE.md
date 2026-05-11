@@ -15,7 +15,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Backend:** Django 5.2+, Python 3.11+, Class-Based Views (CBV)
 - **Database:** MySQL (`mysqlclient`)
 - **Frontend:** HTML + Tailwind CSS via CDN (no build step)
-- **Auth:** `django-auth-ldap` (NPU Active Directory)
+- **Auth:** NPU student API backend + `django-auth-ldap` (NPU Active Directory) + local fallback
 - **Static files:** `whitenoise` (2nd middleware position, after SecurityMiddleware)
 - **WSGI:** Waitress (entry: `deploy/waitress_serve.py`)
 - **Env vars:** `python-dotenv`
@@ -115,6 +115,36 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 | `Certificate` | `user(FK)`, `course(FK)`, `issued_at` — unique_together: `(user, course)` |
 
 `AUTH_USER_MODEL = 'lms.User'` must be set in settings **before** the first migration. Never change after.
+
+## Authentication
+
+Authentication backend order:
+1. `lms.auth_backends.NPUStudentAPIBackend` — student login via NPU API
+2. `django_auth_ldap.backend.LDAPBackend` — staff login via AD when `LDAP_ENABLED=True`
+3. `django.contrib.auth.backends.ModelBackend` — local admin/test users
+
+Student API config:
+```env
+NPU_STUDENT_AUTH_ENABLED=True
+NPU_STUDENT_AUTH_URL=https://api.npu.ac.th/v2/ldap/auth_and_get_student/
+NPU_STUDENT_AUTH_TOKEN=<token>
+NPU_STUDENT_AUTH_TIMEOUT=10
+```
+
+Student backend behavior:
+- POST body uses `userLdap` and `passLdap`
+- Backend only calls the API for 12-digit numeric usernames (`NPU_STUDENT_CODE_LENGTH=12`) so staff/local accounts do not generate student API noise
+- `student_info.student_code` maps to `User.username`
+- `student_name` / `student_surname` map to `first_name` / `last_name`
+- `faculty_name / program_name` maps to `department`
+- Django password is set unusable; do not store the LDAP/API password locally
+
+Local user creation:
+- Admin/staff page: `/users/create/`
+- View: `LocalUserCreateView`
+- Form: `LocalUserCreationForm`
+- Access is restricted to authenticated `is_staff=True` users
+- Use this for staff/local accounts while student accounts continue through the NPU API backend
 
 ## Business Logic
 

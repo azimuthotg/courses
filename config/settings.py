@@ -87,8 +87,18 @@ FILE_UPLOAD_PERMISSIONS = None
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-# Authentication (dev: ModelBackend only; prod: enable LDAP via .env)
+# Authentication
+NPU_STUDENT_AUTH_ENABLED = os.getenv('NPU_STUDENT_AUTH_ENABLED', 'True').lower() in ('true', '1', 'yes')
+NPU_STUDENT_AUTH_URL = os.getenv(
+    'NPU_STUDENT_AUTH_URL',
+    'https://api.npu.ac.th/v2/ldap/auth_and_get_student/',
+)
+NPU_STUDENT_AUTH_TOKEN = os.getenv('NPU_STUDENT_AUTH_TOKEN', '')
+NPU_STUDENT_AUTH_TIMEOUT = int(os.getenv('NPU_STUDENT_AUTH_TIMEOUT', '10'))
+NPU_STUDENT_CODE_LENGTH = int(os.getenv('NPU_STUDENT_CODE_LENGTH', '12'))
+
 AUTHENTICATION_BACKENDS = [
+    'lms.auth_backends.NPUStudentAPIBackend',
     'django.contrib.auth.backends.ModelBackend',
 ]
 
@@ -118,6 +128,7 @@ if os.getenv('LDAP_ENABLED', 'False').lower() in ('true', '1', 'yes'):
         AUTH_LDAP_ALWAYS_UPDATE_USER = True
 
         AUTHENTICATION_BACKENDS = [
+            'lms.auth_backends.NPUStudentAPIBackend',
             'django_auth_ldap.backend.LDAPBackend',
             'django.contrib.auth.backends.ModelBackend',
         ]

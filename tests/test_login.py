@@ -41,26 +41,11 @@ class TestLoginPage:
         expect(page).to_have_url(f"{BASE_URL}/login/?next=/")
 
     def test_logout(self, logged_in_page: Page):
-        """Logout → user ถูก logout จริง (ต้อง login ใหม่เพื่อเข้าหน้า protected).
-
-        Django 6 ต้องการ POST สำหรับ logout จึง submit form ผ่าน JavaScript
-        เพราะ navbar ใช้ <a> (GET) ซึ่งยังไม่ล้าง session
-        """
+        """Logout จาก navbar → user ถูก logout จริง."""
         page = logged_in_page
-        # POST ไปยัง /logout/ พร้อม CSRF token ผ่าน JS form submit
-        page.evaluate("""
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = '/logout/';
-            const csrf = document.createElement('input');
-            csrf.type = 'hidden';
-            csrf.name = 'csrfmiddlewaretoken';
-            csrf.value = (document.cookie.match(/csrftoken=([^;]+)/) || [])[1] || '';
-            form.appendChild(csrf);
-            document.body.appendChild(form);
-            form.submit();
-        """)
-        page.wait_for_load_state()
+        page.get_by_role("button", name="ออกจากระบบ").click()
+        page.wait_for_url(f"{BASE_URL}/login/")
+
         # ตรวจว่า session หมดแล้ว
         page.goto("/")
         expect(page).to_have_url(f"{BASE_URL}/login/?next=/")

@@ -13,7 +13,7 @@
 |---|---|---|
 | 1 | Project Bootstrap | ✅ เสร็จ |
 | 2 | Models & Migrations | ✅ เสร็จ |
-| 3 | Auth (LDAP config) | ✅ บางส่วน |
+| 3 | Auth (Student API + LDAP config) | ✅ นักศึกษาพร้อมใช้ / LDAP staff รอ credentials |
 | 4 | Core Views | ✅ เสร็จ |
 | 5 | Quiz System | ✅ เสร็จ |
 | 6 | Certificate PDF | ✅ เสร็จ |
@@ -60,12 +60,30 @@
 - `python manage.py migrate` — **รันสำเร็จ** ทุก table สร้างแล้วใน DB
 - สร้าง superuser `admin` / `admin1234` แล้ว
 
-### Phase 3 — Auth ✅ (บางส่วน)
+### Phase 3 — Auth ✅ (นักศึกษาพร้อมใช้ / staff LDAP รอ credentials)
 
 - `LMSLoginView`, `LMSLogoutView` ใน `lms/views.py`
 - หน้า `registration/login.html` — ใช้งานได้แล้ว
-- ตอนนี้ใช้ `ModelBackend` (local admin login)
-- **LDAP ยังไม่ได้ทดสอบ** — เปิดใช้งานได้โดยตั้ง `LDAP_ENABLED=True` + credentials ใน `.env`
+- `lms/auth_backends.py` — `NPUStudentAPIBackend` สำหรับนักศึกษา
+  - POST ไปที่ `https://api.npu.ac.th/v2/ldap/auth_and_get_student/`
+  - ส่ง body: `userLdap`, `passLdap`
+  - token อ่านจาก `.env` key `NPU_STUDENT_AUTH_TOKEN`
+  - สร้าง/อัปเดต `User` จาก `student_info`
+  - ตั้ง password ใน Django เป็น unusable เพื่อไม่เก็บรหัสผ่าน LDAP/API
+  - map `department` เป็น `faculty_name / program_name`
+- ทดสอบ student auth จริงผ่าน API สำเร็จ ✅
+  - user: `663150410020`
+  - ได้ชื่อ-นามสกุลและคณะ/สาขากลับมา
+  - `is_staff=False`, `password_usable=False`
+- ใส่ `NPU_STUDENT_AUTH_TOKEN` ใน `.env` แล้ว ✅
+- ทดสอบ student login ผ่าน browser หน้า `/login/` สำเร็จ ✅
+- Staff/local admin login ยังผ่าน `ModelBackend` ✅
+- หน้าเพิ่มผู้ใช้ local สำหรับ admin/staff เสร็จแล้ว ✅
+  - URL: `/users/create/`
+  - เฉพาะ `is_staff=True`
+  - สร้างบัญชี local staff/user ได้
+  - ทดสอบผ่าน Django test client และ browser จริงแล้ว
+- **LDAP สำหรับเจ้าหน้าที่ผ่าน AD ยังไม่ได้ทดสอบจริง** — เปิดใช้งานได้โดยตั้ง `LDAP_ENABLED=True` + credentials ใน `.env`
 
 ### Phase 4 — Core Views ✅
 
@@ -124,6 +142,7 @@
 | `lms/quiz.html` | ✅ dynamic RadioSelect questions |
 | `lms/quiz_result.html` | ✅ score display + pass/fail + next action |
 | `lms/certificate_template.html` | ✅ xhtml2pdf template (no CDN) |
+| `lms/local_user_form.html` | ✅ หน้า admin/staff เพิ่มผู้ใช้ local |
 
 - `lms/templatetags/lms_extras.py` — `get_item` filter สำหรับ dict lookup
 
@@ -131,6 +150,7 @@
 - หน้า Login โหลดได้ ✅
 - Login ด้วย admin/admin1234 ผ่าน ✅
 - Redirect ไปหน้า course list ✅
+- Logout ผ่าน navbar ใช้ POST + CSRF แล้ว ✅
 - Full flow ผ่านด้วย Django test client ✅
   - test user: `codex_test` / `CodexTest1234!`
   - course: `[TEST] Codex Full Flow Course` (`course_id=1`)
@@ -155,6 +175,10 @@ FORCE_SCRIPT_NAME=/courses
 STATIC_URL=/courses/static/
 DEBUG=False
 LDAP_ENABLED=True
+NPU_STUDENT_AUTH_ENABLED=True
+NPU_STUDENT_AUTH_URL=https://api.npu.ac.th/v2/ldap/auth_and_get_student/
+NPU_STUDENT_AUTH_TOKEN=<token>
+NPU_STUDENT_AUTH_TIMEOUT=10
 WAITRESS_PORT=8002
 ```
 
@@ -165,9 +189,10 @@ WAITRESS_PORT=8002
 | รายการ | รายละเอียด |
 |---|---|
 | collectstatic | รันผ่านแล้วหลังเพิ่ม Sarabun font |
-| LDAP ทดสอบ | ตั้ง `LDAP_ENABLED=True` + credentials NPU AD แล้วทดสอบ login จริง |
+| LDAP เจ้าหน้าที่ทดสอบ | ตั้ง `LDAP_ENABLED=True` + credentials NPU AD แล้วทดสอบ staff login จริง |
+| ~~NPU student token~~ | ✅ ใส่ใน `.env` แล้ว; ไม่ commit token ลง repo |
 | ~~ทดสอบ full flow~~ | ✅ ผ่านแล้วทั้ง Django test client และ Playwright browser test |
-| ~~Playwright test suite~~ | ✅ เสร็จแล้ว — 46 passed, 0 failed |
+| ~~Playwright test suite~~ | ✅ เสร็จแล้ว — รันล่าสุด 46 passed, 0 failed |
 
 ---
 
@@ -191,6 +216,7 @@ WAITRESS_PORT=8002
 │   ├── views.py            ✅ (all CBVs)
 │   ├── urls.py             ✅
 │   ├── forms.py            ✅ (QuizSubmitForm)
+│   ├── auth_backends.py    ✅ (NPUStudentAPIBackend)
 │   ├── utils.py            ✅ (mark_completed, PDF)
 │   ├── admin.py            ✅
 │   ├── migrations/
@@ -207,6 +233,7 @@ WAITRESS_PORT=8002
 │           ├── lesson.html             ✅
 │           ├── quiz.html               ✅
 │           ├── quiz_result.html        ✅
+│           ├── local_user_form.html    ✅
 │           └── certificate_template.html ✅
 ├── static/lms/fonts/
 │   └── Sarabun-Regular.ttf ✅
@@ -232,6 +259,8 @@ WAITRESS_PORT=8002
 
 **สิ่งที่ทำแล้วทั้งหมด:**
 - Phase 1–9 ครบ (bootstrap, models, auth, views, quiz, PDF, admin, templates, deploy config)
+- Student authentication ผ่าน NPU API พัฒนาและทดสอบจริงแล้ว
+- หน้า admin/staff เพิ่มผู้ใช้ local เสร็จและทดสอบผ่าน browser แล้ว
 - Playwright browser test suite **46 passed, 0 failed**
 - Push ขึ้น GitHub: `https://github.com/azimuthotg/courses.git` (branch: `main`)
 
@@ -239,6 +268,7 @@ WAITRESS_PORT=8002
 
 ```
 รันด้วย: python -m pytest tests/ --browser chromium -v
+ผลล่าสุด: 46 passed in 337.14s
 ```
 
 | กลุ่ม | Tests | ผล |
@@ -254,31 +284,21 @@ WAITRESS_PORT=8002
 
 ### ข้อสังเกตสำคัญจากการทดสอบ
 
-1. **Logout ใน navbar ไม่ทำงานจริงบน Django 6** — `<a href="/logout/">` เป็น GET แต่ Django 6 ต้องการ POST เพื่อ logout จริง ควรเปลี่ยน navbar เป็น `<form method="post">` (ดูตัวอย่างใน `tests/test_login.py::test_logout`)
-2. **Certificate download** — response เป็น `Content-Disposition: attachment` ต้องใช้ `expect_download()` ของ Playwright ไม่ใช่ `page.goto()`
+1. **Logout ใน navbar แก้แล้ว** — ใช้ `<form method="post">` + `{% csrf_token %}` ตาม behavior ของ Django รุ่นใหม่
+2. **Quiz tests แก้แล้ว** — selector ส่งคำตอบใช้ role/name `ส่งคำตอบ` เพื่อไม่ชนกับปุ่ม logout ที่เป็น submit button ใน navbar
+3. **Certificate download** — response เป็น `Content-Disposition: attachment` ต้องใช้ `expect_download()` ของ Playwright ไม่ใช่ `page.goto()`
 
 ---
 
 **งานที่ควรทำต่อ:**
 
-### 1. แก้ Logout ใน Navbar (สำคัญ)
-เปลี่ยน `lms/templates/base.html` จาก `<a>` เป็น `<form method="post">` พร้อม CSRF token:
-```html
-<form method="post" action="{% url 'logout' %}" class="inline">
-  {% csrf_token %}
-  <button type="submit" class="text-sm bg-blue-700 hover:bg-blue-600 px-4 py-1.5 rounded-full transition">
-    ออกจากระบบ
-  </button>
-</form>
-```
-
-### 2. LDAP ทดสอบ
+### 1. LDAP เจ้าหน้าที่ทดสอบ
 ตั้ง `LDAP_ENABLED=True` + credentials NPU AD ใน `.env` แล้วทดสอบ login จริง
 
-### 3. Production Dry Run
+### 2. Production Dry Run
 รัน `collectstatic`, ทดสอบ `deploy/waitress_serve.py`, ติดตั้ง service ด้วย NSSM และทดสอบผ่าน IIS `/courses/`
 
-### 4. Feature เพิ่มเติมที่อาจต้องการ
+### 3. Feature เพิ่มเติมที่อาจต้องการ
 - หน้า Admin: bulk import questions จาก CSV
 - Progress bar แสดง % บทเรียนที่เรียนแล้ว
 - Email notification เมื่อได้รับ certificate

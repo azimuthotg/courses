@@ -1,11 +1,13 @@
 from django.contrib.auth.views import LoginView, LogoutView
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views.generic import ListView, DetailView, View
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.contrib import messages
+from django.views.generic import ListView, DetailView, View, FormView
 from django.shortcuts import get_object_or_404, render, redirect
 from django.http import HttpResponse
+from django.urls import reverse_lazy
 
 from .models import Course, Lesson, Quiz, Answer, UserProgress, UserQuizAttempt, Certificate
-from .forms import QuizSubmitForm
+from .forms import LocalUserCreationForm, QuizSubmitForm
 from .utils import generate_certificate_pdf, mark_completed
 
 
@@ -16,6 +18,22 @@ class LMSLoginView(LoginView):
 
 class LMSLogoutView(LogoutView):
     next_page = '/login/'
+
+
+class StaffRequiredMixin(UserPassesTestMixin):
+    def test_func(self):
+        return self.request.user.is_authenticated and self.request.user.is_staff
+
+
+class LocalUserCreateView(LoginRequiredMixin, StaffRequiredMixin, FormView):
+    template_name = 'lms/local_user_form.html'
+    form_class = LocalUserCreationForm
+    success_url = reverse_lazy('local-user-create')
+
+    def form_valid(self, form):
+        user = form.save()
+        messages.success(self.request, f'สร้างผู้ใช้ {user.username} สำเร็จ')
+        return super().form_valid(form)
 
 
 class CourseListView(LoginRequiredMixin, ListView):

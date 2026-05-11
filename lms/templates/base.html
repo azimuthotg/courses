@@ -24,11 +24,24 @@
       </a>
       {% if user.is_authenticated %}
       <div class="flex items-center gap-4">
-        <span class="text-blue-200 text-sm hidden sm:block">{{ user.get_full_name|default:user.username }}</span>
-        <a href="{% url 'logout' %}"
-           class="text-sm bg-blue-700 hover:bg-blue-600 px-4 py-1.5 rounded-full transition">
-          ออกจากระบบ
+        {% if user.is_staff %}
+        <a href="{% url 'local-user-create' %}"
+           class="text-sm text-blue-100 hover:text-white transition hidden sm:inline">
+          เพิ่มผู้ใช้
         </a>
+        <a href="{% url 'admin:index' %}"
+           class="text-sm text-blue-100 hover:text-white transition hidden sm:inline">
+          Admin
+        </a>
+        {% endif %}
+        <span class="text-blue-200 text-sm hidden sm:block">{{ user.get_full_name|default:user.username }}</span>
+        <form method="post" action="{% url 'logout' %}">
+          {% csrf_token %}
+          <button type="submit"
+                  class="text-sm bg-blue-700 hover:bg-blue-600 px-4 py-1.5 rounded-full transition">
+            ออกจากระบบ
+          </button>
+        </form>
       </div>
       {% endif %}
     </div>
