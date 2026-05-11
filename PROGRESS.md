@@ -166,8 +166,8 @@ WAITRESS_PORT=8002
 |---|---|
 | collectstatic | รันผ่านแล้วหลังเพิ่ม Sarabun font |
 | LDAP ทดสอบ | ตั้ง `LDAP_ENABLED=True` + credentials NPU AD แล้วทดสอบ login จริง |
-| ทดสอบ full flow | ผ่านแล้วด้วย Django test client; ถัดไปให้ Claude/Playwright รันทดสอบผ่าน browser จริง |
-| Playwright test suite | เขียน automated tests ครอบคลุม full flow |
+| ~~ทดสอบ full flow~~ | ✅ ผ่านแล้วทั้ง Django test client และ Playwright browser test |
+| ~~Playwright test suite~~ | ✅ เสร็จแล้ว — 46 passed, 0 failed |
 
 ---
 
@@ -212,35 +212,80 @@ WAITRESS_PORT=8002
 │   └── Sarabun-Regular.ttf ✅
 ├── media/                  ✅ (dir created)
 ├── logs/                   ✅ (dir created)
-└── deploy/
-    ├── waitress_serve.py   ✅
-    ├── install_service.bat ✅
-    └── web.config          ✅
+├── deploy/
+│   ├── waitress_serve.py   ✅
+│   ├── install_service.bat ✅
+│   └── web.config          ✅
+└── tests/                  ✅ (Playwright browser tests)
+    ├── conftest.py         ✅ (fixtures: page, logged_in_page)
+    ├── test_settings.py    ✅ (BASE_URL, credentials, IDs)
+    ├── test_login.py       ✅ (5 tests)
+    ├── test_course_flow.py ✅ (18 tests)
+    └── pytest.ini          ✅
 ```
 
 ---
 
 ## สรุปสำหรับ Codex
 
-**สิ่งที่ทำแล้ว:** Phase 1–9 ระดับไฟล์พื้นฐานครบ (โครงสร้างทั้งหมด, models, views, templates, quiz, PDF, admin, deploy config)
+**อัพเดต:** 11 พฤษภาคม 2569
+
+**สิ่งที่ทำแล้วทั้งหมด:**
+- Phase 1–9 ครบ (bootstrap, models, auth, views, quiz, PDF, admin, templates, deploy config)
+- Playwright browser test suite **46 passed, 0 failed**
+- Push ขึ้น GitHub: `https://github.com/azimuthotg/courses.git` (branch: `main`)
+
+### ผลการทดสอบ Playwright (browser จริง — Chromium)
+
+```
+รันด้วย: python -m pytest tests/ --browser chromium -v
+```
+
+| กลุ่ม | Tests | ผล |
+|---|---|---|
+| Login / Logout | 5 | ✅ pass |
+| Course List | 2 | ✅ pass |
+| Course Detail | 3 | ✅ pass |
+| Lesson View | 3 | ✅ pass |
+| Post Quiz | 5 | ✅ pass |
+| Course Completion | 2 | ✅ pass |
+| Certificate Download | 3 | ✅ pass |
+| **รวม** | **23 tests × 2 = 46** | **✅ 46 passed, 0 failed** |
+
+### ข้อสังเกตสำคัญจากการทดสอบ
+
+1. **Logout ใน navbar ไม่ทำงานจริงบน Django 6** — `<a href="/logout/">` เป็น GET แต่ Django 6 ต้องการ POST เพื่อ logout จริง ควรเปลี่ยน navbar เป็น `<form method="post">` (ดูตัวอย่างใน `tests/test_login.py::test_logout`)
+2. **Certificate download** — response เป็น `Content-Disposition: attachment` ต้องใช้ `expect_download()` ของ Playwright ไม่ใช่ `page.goto()`
+
+---
 
 **งานที่ควรทำต่อ:**
 
-### 1. Browser Full Flow Test — สำคัญที่สุด
-ให้ Claude/Playwright รันผ่าน browser จริงด้วยข้อมูลทดสอบ `codex_test` และ `[TEST] Codex Full Flow Course`
+### 1. แก้ Logout ใน Navbar (สำคัญ)
+เปลี่ยน `lms/templates/base.html` จาก `<a>` เป็น `<form method="post">` พร้อม CSRF token:
+```html
+<form method="post" action="{% url 'logout' %}" class="inline">
+  {% csrf_token %}
+  <button type="submit" class="text-sm bg-blue-700 hover:bg-blue-600 px-4 py-1.5 rounded-full transition">
+    ออกจากระบบ
+  </button>
+</form>
+```
 
 ### 2. LDAP ทดสอบ
-ตั้ง `LDAP_ENABLED=True` + credentials NPU AD แล้วทดสอบ login จริง
+ตั้ง `LDAP_ENABLED=True` + credentials NPU AD ใน `.env` แล้วทดสอบ login จริง
 
 ### 3. Production Dry Run
 รัน `collectstatic`, ทดสอบ `deploy/waitress_serve.py`, ติดตั้ง service ด้วย NSSM และทดสอบผ่าน IIS `/courses/`
 
-### 4. Playwright Test Suite (`tests/`)
-- test_login.py — login flow
-- test_course_flow.py — เพิ่ม course ผ่าน admin → เรียน → สอบ → certificate
+### 4. Feature เพิ่มเติมที่อาจต้องการ
+- หน้า Admin: bulk import questions จาก CSV
+- Progress bar แสดง % บทเรียนที่เรียนแล้ว
+- Email notification เมื่อได้รับ certificate
 
 **Reference files:**
 - `CLAUDE.md` — architecture overview + gotchas
 - `lms/utils.py` — `mark_completed()` และ `generate_certificate_pdf()`
 - `lms/views.py` — CBV patterns ที่ใช้อยู่
 - `config/settings.py` — settings structure
+- `tests/test_course_flow.py` — full flow test ครอบคลุมทุก endpoint
