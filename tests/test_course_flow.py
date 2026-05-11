@@ -68,7 +68,7 @@ class TestLessonView:
     def test_lesson_loads(self, logged_in_page: Page):
         """หน้า lesson โหลดได้และแสดง YouTube embed."""
         page = logged_in_page
-        page.goto(LESSON_URL)
+        page.goto(LESSON_URL, wait_until="domcontentloaded")
         expect(page).to_have_url(f"{BASE_URL}{LESSON_URL}")
         expect(page.get_by_role("heading", name="บทเรียนทดสอบ", exact=False).first).to_be_visible()
         # iframe YouTube ต้องอยู่ในหน้า
@@ -77,14 +77,14 @@ class TestLessonView:
     def test_lesson_marks_completed(self, logged_in_page: Page):
         """การเข้า lesson บันทึก lesson ว่าเรียนแล้ว (ไม่ error)."""
         page = logged_in_page
-        page.goto(LESSON_URL)
+        page.goto(LESSON_URL, wait_until="domcontentloaded")
         # ไม่มี error, response 200
         expect(page).to_have_url(f"{BASE_URL}{LESSON_URL}")
 
     def test_lesson_sidebar_navigation(self, logged_in_page: Page):
         """Sidebar แสดง lesson list สำหรับ navigate."""
         page = logged_in_page
-        page.goto(LESSON_URL)
+        page.goto(LESSON_URL, wait_until="domcontentloaded")
         # lesson อยู่ใน sidebar ด้วย
         expect(page.locator("text=บทเรียนทดสอบ").first).to_be_visible()
 
@@ -106,7 +106,7 @@ class TestPostQuiz:
         page.goto(POST_QUIZ_URL)
         for answer_id in CORRECT_ANSWER_IDS:
             page.check(f'input[type="radio"][value="{answer_id}"]')
-        page.click('button[type="submit"]')
+        page.get_by_role("button", name="ส่งคำตอบ").click()
         expect(page.locator("text=ผ่านการสอบ!")).to_be_visible()
         expect(page.locator("text=100.0%")).to_be_visible()
         expect(page.locator("text=ตอบถูก 3 จาก 3 ข้อ")).to_be_visible()
@@ -117,7 +117,7 @@ class TestPostQuiz:
         page.goto(POST_QUIZ_URL)
         for answer_id in WRONG_ANSWER_IDS:
             page.check(f'input[type="radio"][value="{answer_id}"]')
-        page.click('button[type="submit"]')
+        page.get_by_role("button", name="ส่งคำตอบ").click()
         expect(page.locator("text=ไม่ผ่านการสอบ")).to_be_visible()
         expect(page.locator("text=0.0%")).to_be_visible()
         # ต้องมีปุ่ม "ทำแบบทดสอบอีกครั้ง"
@@ -129,7 +129,7 @@ class TestPostQuiz:
         page.goto(POST_QUIZ_URL)
         for answer_id in CORRECT_ANSWER_IDS:
             page.check(f'input[type="radio"][value="{answer_id}"]')
-        page.click('button[type="submit"]')
+        page.get_by_role("button", name="ส่งคำตอบ").click()
         expect(page.locator("text=ดาวน์โหลดใบประกาศนียบัตร")).to_be_visible()
         expect(page.locator(f'a[href="{CERTIFICATE_URL}"]')).to_be_visible()
 
@@ -139,7 +139,7 @@ class TestPostQuiz:
         page.goto(POST_QUIZ_URL)
         for answer_id in CORRECT_ANSWER_IDS:
             page.check(f'input[type="radio"][value="{answer_id}"]')
-        page.click('button[type="submit"]')
+        page.get_by_role("button", name="ส่งคำตอบ").click()
         page.click("text=กลับหน้าหลักสูตร")
         expect(page).to_have_url(f"{BASE_URL}{COURSE_URL}")
 
@@ -152,7 +152,7 @@ class TestCourseCompletion:
         page.goto(POST_QUIZ_URL)
         for answer_id in CORRECT_ANSWER_IDS:
             page.check(f'input[type="radio"][value="{answer_id}"]')
-        page.click('button[type="submit"]')
+        page.get_by_role("button", name="ส่งคำตอบ").click()
         # กลับไปหน้า course list ตรวจ badge
         page.goto("/")
         # badge สถานะ completed ต้องปรากฏ (template แสดง "เสร็จสิ้น" หรือ class badge)
@@ -165,7 +165,7 @@ class TestCourseCompletion:
         page.goto(POST_QUIZ_URL)
         for answer_id in CORRECT_ANSWER_IDS:
             page.check(f'input[type="radio"][value="{answer_id}"]')
-        page.click('button[type="submit"]')
+        page.get_by_role("button", name="ส่งคำตอบ").click()
         # ไปหน้า course detail
         page.goto(COURSE_URL)
         expect(page.locator(f'a[href="{CERTIFICATE_URL}"]').first).to_be_visible()
@@ -177,7 +177,7 @@ class TestCertificateDownload:
         page.goto(POST_QUIZ_URL)
         for answer_id in CORRECT_ANSWER_IDS:
             page.check(f'input[type="radio"][value="{answer_id}"]')
-        page.click('button[type="submit"]')
+        page.get_by_role("button", name="ส่งคำตอบ").click()
         page.goto(COURSE_URL)
 
     def test_certificate_download_returns_pdf(self, logged_in_page: Page):

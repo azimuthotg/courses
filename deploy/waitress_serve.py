@@ -17,6 +17,8 @@ def _configure_encoding():
 
 def main():
     _configure_encoding()
+    if str(BASE_DIR) not in sys.path:
+        sys.path.insert(0, str(BASE_DIR))
     load_dotenv(BASE_DIR / '.env')
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
 
