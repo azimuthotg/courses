@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  @font-face {
+    font-family: "Sarabun";
+    src: url("/static/lms/fonts/Sarabun-Regular.ttf");
+  }
+  @page {
+    size: A4 landscape;
+    margin: 0;
+  }
+  body {
+    margin: 0;
+    padding: 40px 60px;
+    font-family: "Sarabun", "TH Sarabun New", sans-serif;
+    background: #ffffff;
+    color: #1e3a5f;
+  }
+  .border-frame {
+    border: 6px double #1e3a5f;
+    padding: 40px 60px;
+    min-height: 520px;
+    text-align: center;
+  }
+  .org-name {
+    font-size: 16pt;
+    font-weight: bold;
+    color: #1e3a5f;
+    margin-bottom: 6px;
+  }
+  .cert-title {
+    font-size: 32pt;
+    font-weight: bold;
+    color: #b8860b;
+    margin: 20px 0 10px;
+    letter-spacing: 4px;
+  }
+  .cert-subtitle {
+    font-size: 12pt;
+    color: #555;
+    margin-bottom: 30px;
+  }
+  .given-to {
+    font-size: 12pt;
+    color: #444;
+    margin-bottom: 8px;
+  }
+  .recipient-name {
+    font-size: 24pt;
+    font-weight: bold;
+    color: #1e3a5f;
+    border-bottom: 2px solid #b8860b;
+    display: inline-block;
+    padding-bottom: 4px;
+    margin: 0 0 20px;
+    min-width: 400px;
+  }
+  .course-label {
+    font-size: 12pt;
+    color: #444;
+    margin-bottom: 8px;
+  }
+  .course-name {
+    font-size: 16pt;
+    font-weight: bold;
+    color: #1e3a5f;
+    margin-bottom: 30px;
+  }
+  .date-text {
+    font-size: 11pt;
+    color: #555;
+    margin-bottom: 50px;
+  }
+  .signature-section {
+    margin-top: 20px;
+  }
+  .signature-line {
+    display: inline-block;
+    border-top: 1px solid #333;
+    width: 220px;
+    padding-top: 8px;
+  }
+  .signature-name {
+    font-size: 11pt;
+    font-weight: bold;
+    color: #1e3a5f;
+  }
+  .signature-title {
+    font-size: 10pt;
+    color: #555;
+  }
+  .divider {
+    border: none;
+    border-top: 1px solid #b8860b;
+    margin: 16px auto;
+    width: 200px;
+  }
+</style>
+</head>
+<body>
+<div class="border-frame">
+
+  <div class="org-name">สำนักวิทยบริการและเทคโนโลยีสารสนเทศ</div>
+  <div class="org-name">มหาวิทยาลัยนครพนม</div>
+
+  <hr class="divider">
+
+  <div class="cert-title">ใบประกาศนียบัตร</div>
+  <div class="cert-subtitle">Certificate of Completion</div>
+
+  <div class="given-to">มอบให้แก่</div>
+  <div class="recipient-name">{{ user.get_full_name }}</div>
+
+  <div class="course-label">ที่ผ่านหลักสูตร</div>
+  <div class="course-name">{{ course.title }}</div>
+
+  <div class="date-text">
+    เมื่อวันที่ {{ certificate.issued_at|date:"j F Y" }}
+  </div>
+
+  <div class="signature-section">
+    <div class="signature-line">
+      <div class="signature-name">ผู้อำนวยการสำนักวิทยบริการฯ</div>
+      <div class="signature-title">มหาวิทยาลัยนครพนม</div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

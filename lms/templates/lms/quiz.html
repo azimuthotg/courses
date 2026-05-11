@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ quiz.get_quiz_type_display }} — {{ course.title }}{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+  <a href="{% url 'course-detail' course.pk %}" class="text-blue-600 hover:underline text-sm">← กลับหน้าหลักสูตร</a>
+</div>
+
+<div class="max-w-3xl mx-auto">
+  <div class="bg-white rounded-xl shadow p-6 mb-6">
+    <h1 class="text-xl font-bold text-gray-900">{{ quiz.get_quiz_type_display }}</h1>
+    <p class="text-gray-500 text-sm mt-1">{{ course.title }}</p>
+    <p class="text-sm text-blue-600 mt-2">เกณฑ์ผ่าน: 70% ขึ้นไป</p>
+  </div>
+
+  <form method="post">
+    {% csrf_token %}
+    <div class="space-y-6">
+      {% for field_name, field in form.fields.items %}
+      {% with forloop.counter as q_num %}
+      <div class="bg-white rounded-xl shadow p-6">
+        <p class="font-medium text-gray-900 mb-4">
+          <span class="text-blue-600 font-bold mr-2">{{ q_num }}.</span>
+          {{ field.label }}
+        </p>
+        <div class="space-y-2">
+          {% for value, label in field.choices %}
+          <label class="flex items-start gap-3 cursor-pointer group">
+            <input type="radio" name="{{ field_name }}" value="{{ value }}" required
+              class="mt-1 w-4 h-4 text-blue-600 cursor-pointer flex-shrink-0">
+            <span class="text-gray-700 text-sm group-hover:text-blue-700 transition leading-relaxed">
+              {{ label }}
+            </span>
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+      {% endwith %}
+      {% endfor %}
+    </div>
+
+    <div class="mt-8 text-center">
+      <button type="submit"
+        class="bg-blue-700 hover:bg-blue-600 text-white font-semibold px-10 py-3 rounded-xl transition text-sm shadow">
+        ส่งคำตอบ
+      </button>
+    </div>
+  </form>
+</div>
+{% endblock %}

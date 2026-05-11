@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ lesson.title }} — {{ course.title }}{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+  <a href="{% url 'course-detail' course.pk %}" class="text-blue-600 hover:underline text-sm">← กลับหน้าหลักสูตร</a>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+
+  <!-- Video Player -->
+  <div class="lg:col-span-3">
+    <div class="bg-white rounded-xl shadow overflow-hidden">
+      <div class="aspect-video w-full bg-black">
+        <iframe class="w-full h-full"
+          src="https://www.youtube.com/embed/{{ lesson.youtube_video_id }}?rel=0"
+          frameborder="0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowfullscreen>
+        </iframe>
+      </div>
+      <div class="p-4">
+        <h1 class="text-lg font-bold text-gray-900">{{ lesson.title }}</h1>
+        <p class="text-sm text-gray-500 mt-1">{{ course.title }}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lesson List Sidebar -->
+  <div class="lg:col-span-1">
+    <h2 class="text-sm font-semibold text-gray-600 uppercase tracking-wide mb-3">รายการบทเรียน</h2>
+    <div class="space-y-1">
+      {% with watched=progress.lessons_completed.all %}
+      {% for l in lessons %}
+      <a href="{% url 'lesson' course.pk l.pk %}"
+         class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition
+           {% if l.pk == lesson.pk %}bg-blue-600 text-white
+           {% elif l in watched %}bg-green-50 text-green-700 hover:bg-green-100
+           {% else %}text-gray-700 hover:bg-gray-100{% endif %}">
+        <span class="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold
+          {% if l.pk == lesson.pk %}bg-blue-500
+          {% elif l in watched %}bg-green-200 text-green-700
+          {% else %}bg-gray-200 text-gray-600{% endif %}">
+          {% if l in watched and l.pk != lesson.pk %}✓{% else %}{{ l.order }}{% endif %}
+        </span>
+        <span class="truncate">{{ l.title }}</span>
+      </a>
+      {% endfor %}
+      {% endwith %}
+    </div>
+
+    <!-- Back to course button -->
+    <div class="mt-4">
+      <a href="{% url 'course-detail' course.pk %}"
+         class="block w-full text-center bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm py-2 rounded-lg transition">
+        กลับหน้าหลักสูตร
+      </a>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

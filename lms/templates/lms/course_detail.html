@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ course.title }} — NPU Library LMS{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+  <a href="{% url 'course-list' %}" class="text-blue-600 hover:underline text-sm">← กลับหน้าหลัก</a>
+</div>
+
+<!-- Course Header -->
+<div class="bg-white rounded-xl shadow p-6 mb-6">
+  <div class="flex flex-col md:flex-row gap-6">
+    {% if course.thumbnail %}
+    <img src="{{ course.thumbnail.url }}" alt="{{ course.title }}"
+         class="w-full md:w-56 h-40 object-cover rounded-lg flex-shrink-0">
+    {% endif %}
+    <div class="flex-1">
+      <h1 class="text-2xl font-bold text-gray-900 mb-2">{{ course.title }}</h1>
+      {% if course.description %}
+      <p class="text-gray-600 text-sm leading-relaxed">{{ course.description }}</p>
+      {% endif %}
+      <div class="mt-4 flex flex-wrap gap-3">
+        {% if progress.status == 'completed' %}
+          <span class="inline-flex items-center gap-1 bg-green-100 text-green-700 text-sm px-3 py-1 rounded-full font-medium">
+            ✓ เรียนจบแล้ว
+          </span>
+          {% if certificate %}
+          <a href="{% url 'certificate' course.pk %}"
+             class="inline-flex items-center gap-1 bg-yellow-500 hover:bg-yellow-400 text-white text-sm px-4 py-1.5 rounded-full font-medium transition">
+            ดาวน์โหลดใบประกาศนียบัตร
+          </a>
+          {% endif %}
+        {% elif progress.status == 'in_progress' %}
+          <span class="inline-flex items-center gap-1 bg-yellow-100 text-yellow-700 text-sm px-3 py-1 rounded-full font-medium">
+            กำลังเรียน
+          </span>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+  <!-- Lessons -->
+  <div class="lg:col-span-2">
+    <h2 class="text-lg font-semibold text-gray-800 mb-3">บทเรียน</h2>
+    {% if lessons %}
+    <div class="space-y-2">
+      {% for lesson in lessons %}
+      {% with watched=progress.lessons_completed.all %}
+      <a href="{% url 'lesson' course.pk lesson.pk %}"
+         class="flex items-center gap-4 bg-white rounded-lg shadow-sm hover:shadow-md p-4 transition group">
+        <div class="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold
+          {% if lesson in watched %}bg-green-100 text-green-700{% else %}bg-blue-100 text-blue-700{% endif %}">
+          {% if lesson in watched %}✓{% else %}{{ lesson.order }}{% endif %}
+        </div>
+        <span class="flex-1 text-gray-800 group-hover:text-blue-700 transition text-sm font-medium">
+          {{ lesson.title }}
+        </span>
+        <svg class="w-4 h-4 text-gray-400 group-hover:text-blue-500 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+        </svg>
+      </a>
+      {% endwith %}
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-gray-400 text-sm">ยังไม่มีบทเรียน</p>
+    {% endif %}
+  </div>
+
+  <!-- Quiz Panel -->
+  <div class="space-y-4">
+
+    {% if pre_quiz %}
+    <div class="bg-white rounded-xl shadow p-4">
+      <h3 class="font-semibold text-gray-700 mb-2">แบบทดสอบก่อนเรียน</h3>
+      <a href="{% url 'quiz' course.pk 'pre' %}"
+         class="block w-full text-center bg-blue-600 hover:bg-blue-500 text-white text-sm py-2 rounded-lg transition">
+        ทำแบบทดสอบ
+      </a>
+    </div>
+    {% endif %}
+
+    {% if post_quiz %}
+    <div class="bg-white rounded-xl shadow p-4">
+      <h3 class="font-semibold text-gray-700 mb-2">แบบทดสอบหลังเรียน</h3>
+      {% if best_attempt %}
+      <p class="text-sm text-gray-500 mb-2">
+        คะแนนสูงสุด: <strong class="{% if best_attempt.is_passed %}text-green-600{% else %}text-red-500{% endif %}">
+          {{ best_attempt.score_percentage|floatformat:1 }}%
+        </strong>
+        {% if best_attempt.is_passed %}(ผ่าน){% else %}(ไม่ผ่าน){% endif %}
+      </p>
+      {% endif %}
+      <a href="{% url 'quiz' course.pk 'post' %}"
+         class="block w-full text-center bg-orange-500 hover:bg-orange-400 text-white text-sm py-2 rounded-lg transition">
+        {% if best_attempt and best_attempt.is_passed %}ทำแบบทดสอบอีกครั้ง{% else %}ทำแบบทดสอบ{% endif %}
+      </a>
+    </div>
+    {% endif %}
+
+    {% if progress.status == 'completed' and certificate %}
+    <div class="bg-gradient-to-br from-yellow-50 to-orange-50 border border-yellow-200 rounded-xl p-4 text-center">
+      <p class="text-yellow-700 font-semibold text-sm mb-2">ยินดีด้วย! คุณผ่านหลักสูตรนี้แล้ว</p>
+      <a href="{% url 'certificate' course.pk %}"
+         class="inline-block bg-yellow-500 hover:bg-yellow-400 text-white text-sm px-4 py-2 rounded-lg transition font-medium">
+        ดาวน์โหลดใบประกาศนียบัตร
+      </a>
+    </div>
+    {% endif %}
+
+  </div>
+</div>
+{% endblock %}
