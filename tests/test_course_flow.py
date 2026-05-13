@@ -30,7 +30,7 @@ class TestCourseList:
         page.goto("/")
         expect(page).to_have_url(f"{BASE_URL}/")
         # ต้องมี course ทดสอบปรากฏ
-        expect(page.locator("text=[TEST] Codex Full Flow Course")).to_be_visible()
+        expect(page.get_by_role("heading", name="[TEST] Codex Full Flow Course")).to_be_visible()
 
     def test_course_card_has_link(self, logged_in_page: Page):
         """Course card มี link ไปหน้า detail."""
@@ -46,7 +46,7 @@ class TestCourseDetail:
         page = logged_in_page
         page.goto(COURSE_URL)
         expect(page).to_have_url(f"{BASE_URL}{COURSE_URL}")
-        expect(page.locator("text=[TEST] Codex Full Flow Course")).to_be_visible()
+        expect(page.get_by_role("heading", name="[TEST] Codex Full Flow Course")).to_be_visible()
         # ต้องแสดง lesson
         expect(page.locator("text=บทเรียนทดสอบ")).to_be_visible()
 

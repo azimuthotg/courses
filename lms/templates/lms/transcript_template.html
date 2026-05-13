@@ -1,0 +1,55 @@
+{% load lms_extras %}
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    @font-face {
+      font-family: 'Sarabun';
+      src: url('/static/lms/fonts/Sarabun-Regular.ttf');
+    }
+    body { font-family: 'Sarabun', sans-serif; font-size: 13px; color: #333; margin: 30px; }
+    h1 { color: #134e4a; font-size: 20px; margin-bottom: 4px; }
+    h2 { color: #134e4a; font-size: 14px; border-bottom: 1px solid #134e4a; padding-bottom: 4px; margin-top: 24px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th { background: #134e4a; color: white; padding: 6px 10px; text-align: left; font-size: 12px; }
+    td { padding: 6px 10px; border-bottom: 1px solid #e5e7eb; font-size: 12px; }
+    .passed { color: #16a34a; }
+    .failed { color: #dc2626; }
+    .footer { margin-top: 30px; font-size: 10px; color: #999; text-align: right; }
+  </style>
+</head>
+<body>
+  <h1>Transcript การเรียน</h1>
+  <p>ชื่อ: {{ user.get_full_name }} &nbsp;|&nbsp; รหัส: {{ user.username }} &nbsp;|&nbsp; สาขา: {{ user.department }}</p>
+  <p style="font-size:11px; color:#999;">สร้างเมื่อ: {{ generated_at|date:"j F Y" }}</p>
+
+  <h2>รายวิชา</h2>
+  <table>
+    <tr>
+      <th>วิชา</th>
+      <th>สถานะ</th>
+      <th>คะแนน Post-test</th>
+      <th>ใบประกาศฯ</th>
+    </tr>
+    {% for progress in progress_list %}
+    {% with best=best_map|get_item:progress.course_id cert=certs|get_item:progress.course_id %}
+    <tr>
+      <td>{{ progress.course.title }}</td>
+      <td>{% if progress.status == 'completed' %}เรียนจบแล้ว{% else %}กำลังเรียน{% endif %}</td>
+      <td>
+        {% if best %}
+          <span class="{% if best.is_passed %}passed{% else %}failed{% endif %}">
+            {{ best.score_percentage|floatformat:0 }}%
+          </span>
+        {% else %}-{% endif %}
+      </td>
+      <td>{% if cert %}{{ cert.serial_number }}{% else %}-{% endif %}</td>
+    </tr>
+    {% endwith %}
+    {% endfor %}
+  </table>
+
+  <div class="footer">ระบบ E-Learning ห้องสมุดมหาวิทยาลัยนครพนม — lib.npu.ac.th/courses</div>
+</body>
+</html>

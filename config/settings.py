@@ -14,6 +14,7 @@ ALLOWED_HOSTS = [h.strip() for h in os.getenv('ALLOWED_HOSTS', '*').split(',') i
 FORCE_SCRIPT_NAME = os.getenv('FORCE_SCRIPT_NAME', '')
 USE_X_FORWARDED_HOST = True
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
 SESSION_COOKIE_SECURE = not DEBUG
 CSRF_COOKIE_SECURE = not DEBUG
 CSRF_TRUSTED_ORIGINS = [o.strip() for o in os.getenv('CSRF_TRUSTED_ORIGINS', 'http://localhost:8000').split(',') if o.strip()]
@@ -96,6 +97,8 @@ NPU_STUDENT_AUTH_URL = os.getenv(
 NPU_STUDENT_AUTH_TOKEN = os.getenv('NPU_STUDENT_AUTH_TOKEN', '')
 NPU_STUDENT_AUTH_TIMEOUT = int(os.getenv('NPU_STUDENT_AUTH_TIMEOUT', '10'))
 NPU_STUDENT_CODE_LENGTH = int(os.getenv('NPU_STUDENT_CODE_LENGTH', '12'))
+LINE_OA_ENABLED = os.getenv('LINE_OA_ENABLED', 'False').lower() in ('true', '1', 'yes')
+LINE_OA_CHANNEL_ACCESS_TOKEN = os.getenv('LINE_OA_CHANNEL_ACCESS_TOKEN', '')
 
 AUTHENTICATION_BACKENDS = [
     'lms.auth_backends.NPUStudentAPIBackend',

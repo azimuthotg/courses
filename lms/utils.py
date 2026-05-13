@@ -5,15 +5,39 @@ from django.conf import settings
 from django.contrib.staticfiles import finders
 from django.template.loader import render_to_string
 
-from .models import Certificate
+from .line_notify import notify_course_completed
+from .models import AuditLog, Certificate
 
 
 def mark_completed(user, course, progress):
     """Mark course as completed and auto-issue certificate (idempotent)."""
+    was_completed = progress.status == 'completed'
     if progress.status != 'completed':
         progress.status = 'completed'
         progress.save()
-    Certificate.objects.get_or_create(user=user, course=course)
+    certificate, created = Certificate.objects.get_or_create(user=user, course=course)
+    if not was_completed:
+        log_audit(user, 'course_complete', course.title)
+    if created:
+        log_audit(user, 'certificate_issued', f'{course.title} | {certificate.serial_number}')
+        notify_course_completed(user, course, certificate)
+
+
+def log_audit(user, action, description='', request=None):
+    """Write an audit log entry without interrupting the user flow."""
+    try:
+        ip_address = None
+        if request:
+            x_forwarded = request.META.get('HTTP_X_FORWARDED_FOR')
+            ip_address = x_forwarded.split(',')[0].strip() if x_forwarded else request.META.get('REMOTE_ADDR')
+        AuditLog.objects.create(
+            user=user if getattr(user, 'is_authenticated', False) else None,
+            action=action,
+            description=description,
+            ip_address=ip_address,
+        )
+    except Exception:
+        pass
 
 
 def link_callback(uri, rel):

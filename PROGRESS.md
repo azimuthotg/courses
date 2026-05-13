@@ -20,6 +20,7 @@
 | 7 | Django Admin | ✅ เสร็จ |
 | 8 | Templates (HTML) | ✅ เสร็จ |
 | 9 | Production Config | ✅ ไฟล์พื้นฐานเสร็จ |
+| 10 | Staff Content Frontend | ✅ เสร็จ |
 
 ---
 
@@ -82,7 +83,7 @@
   - URL: `/users/create/`
   - เฉพาะ `is_staff=True`
   - สร้างบัญชี local staff/user ได้
-  - ทดสอบผ่าน Django test client และ browser จริงแล้ว
+  - ทดสอบผ่าน Django test client, browser จริง และ Playwright suite แล้ว
 - **LDAP สำหรับเจ้าหน้าที่ผ่าน AD ยังไม่ได้ทดสอบจริง** — เปิดใช้งานได้โดยตั้ง `LDAP_ENABLED=True` + credentials ใน `.env`
 
 ### Phase 4 — Core Views ✅
@@ -143,6 +144,7 @@
 | `lms/quiz_result.html` | ✅ score display + pass/fail + next action |
 | `lms/certificate_template.html` | ✅ xhtml2pdf template (no CDN) |
 | `lms/local_user_form.html` | ✅ หน้า admin/staff เพิ่มผู้ใช้ local |
+| `lms/staff/*.html` | ✅ staff frontend 10 templates |
 
 - `lms/templatetags/lms_extras.py` — `get_item` filter สำหรับ dict lookup
 
@@ -182,17 +184,36 @@ NPU_STUDENT_AUTH_TIMEOUT=10
 WAITRESS_PORT=8002
 ```
 
+### Phase 10 — Staff Content Frontend ✅
+
+ไฟล์:
+- `lms/staff_urls.py` — URL prefix `/staff/` รวม 13 routes
+- `lms/forms.py` — `CourseForm`, `LessonForm`, `QuestionWithAnswersForm`
+- `lms/views.py` — staff views รวม 13 views
+- `lms/templates/lms/staff/` — 10 templates
+- `tests/test_staff_content.py` — 21 tests
+
+ความสามารถ:
+- Dashboard สถิติหลักสูตร
+- Course CRUD
+- Lesson CRUD พร้อม validate `course + order`
+- Quiz auto-create สำหรับ pre/post test
+- Question + 4 answers CRUD
+- Course report พร้อม enrollment/completion/certificate/pass-rate/avg-score
+- จำกัดสิทธิ์เฉพาะ `is_staff=True`
+- Navbar เพิ่มเมนู `จัดการเนื้อหา` เฉพาะ staff
+
 ---
 
 ## งานค้างเพิ่มเติม
 
 | รายการ | รายละเอียด |
 |---|---|
-| collectstatic | รันผ่านแล้วหลังเพิ่ม Sarabun font |
+| collectstatic | รันล่าสุดผ่านแล้ว: `0 copied, 131 unmodified` |
 | LDAP เจ้าหน้าที่ทดสอบ | ตั้ง `LDAP_ENABLED=True` + credentials NPU AD แล้วทดสอบ staff login จริง |
 | ~~NPU student token~~ | ✅ ใส่ใน `.env` แล้ว; ไม่ commit token ลง repo |
 | ~~ทดสอบ full flow~~ | ✅ ผ่านแล้วทั้ง Django test client และ Playwright browser test |
-| ~~Playwright test suite~~ | ✅ เสร็จแล้ว — รันล่าสุด 46 passed, 0 failed |
+| ~~Playwright test suite~~ | ✅ เสร็จแล้ว — รันล่าสุด 102 passed, 0 failed |
 
 ---
 
@@ -215,6 +236,7 @@ WAITRESS_PORT=8002
 │   ├── models.py           ✅ (9 models, migrated)
 │   ├── views.py            ✅ (all CBVs)
 │   ├── urls.py             ✅
+│   ├── staff_urls.py       ✅
 │   ├── forms.py            ✅ (QuizSubmitForm)
 │   ├── auth_backends.py    ✅ (NPUStudentAPIBackend)
 │   ├── utils.py            ✅ (mark_completed, PDF)
@@ -234,7 +256,8 @@ WAITRESS_PORT=8002
 │           ├── quiz.html               ✅
 │           ├── quiz_result.html        ✅
 │           ├── local_user_form.html    ✅
-│           └── certificate_template.html ✅
+│           ├── certificate_template.html ✅
+│           └── staff/                  ✅ (10 templates)
 ├── static/lms/fonts/
 │   └── Sarabun-Regular.ttf ✅
 ├── media/                  ✅ (dir created)
@@ -248,6 +271,8 @@ WAITRESS_PORT=8002
     ├── test_settings.py    ✅ (BASE_URL, credentials, IDs)
     ├── test_login.py       ✅ (5 tests)
     ├── test_course_flow.py ✅ (18 tests)
+    ├── test_user_management.py ✅ (7 tests)
+    ├── test_staff_content.py ✅ (21 tests)
     └── pytest.ini          ✅
 ```
 
@@ -261,14 +286,15 @@ WAITRESS_PORT=8002
 - Phase 1–9 ครบ (bootstrap, models, auth, views, quiz, PDF, admin, templates, deploy config)
 - Student authentication ผ่าน NPU API พัฒนาและทดสอบจริงแล้ว
 - หน้า admin/staff เพิ่มผู้ใช้ local เสร็จและทดสอบผ่าน browser แล้ว
-- Playwright browser test suite **46 passed, 0 failed**
+- Staff content management frontend เสร็จแล้ว
+- Playwright browser test suite **102 passed, 0 failed**
 - Push ขึ้น GitHub: `https://github.com/azimuthotg/courses.git` (branch: `main`)
 
 ### ผลการทดสอบ Playwright (browser จริง — Chromium)
 
 ```
 รันด้วย: python -m pytest tests/ --browser chromium -v
-ผลล่าสุด: 46 passed in 337.14s
+ผลล่าสุด: 102 passed in 2288.42s
 ```
 
 | กลุ่ม | Tests | ผล |
@@ -280,7 +306,9 @@ WAITRESS_PORT=8002
 | Post Quiz | 5 | ✅ pass |
 | Course Completion | 2 | ✅ pass |
 | Certificate Download | 3 | ✅ pass |
-| **รวม** | **23 tests × 2 = 46** | **✅ 46 passed, 0 failed** |
+| User Management | 7 | ✅ pass |
+| Staff Content Management | 21 | ✅ pass |
+| **รวม** | **51 tests × 2 = 102** | **✅ 102 passed, 0 failed** |
 
 ### ข้อสังเกตสำคัญจากการทดสอบ
 

@@ -1,0 +1,58 @@
+{% extends 'lms/staff/base_staff.html' %}
+{% load lms_extras %}
+
+{% block title %}จัดการเนื้อหา — NPU Library LMS{% endblock %}
+
+{% block staff_content %}
+<nav class="text-sm text-gray-500 mb-4" aria-label="breadcrumb">
+  <ol class="flex items-center gap-1">
+    <li class="text-gray-700 font-medium">จัดการ</li>
+    <li class="text-gray-300">/</li>
+    <li class="text-gray-700 font-medium">Dashboard</li>
+  </ol>
+</nav>
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <h1 class="text-2xl font-bold text-gray-900">จัดการเนื้อหา</h1>
+    <p class="text-sm text-gray-500 mt-1">ภาพรวมหลักสูตรและสถิติการเรียน</p>
+  </div>
+  <a href="{% url 'staff-course-create' %}" class="bg-teal-800 hover:bg-teal-700 text-white text-sm px-4 py-2 rounded-lg font-medium">เพิ่มหลักสูตร</a>
+</div>
+
+<div class="bg-white rounded-xl shadow overflow-hidden">
+  <table class="w-full text-sm">
+    <thead class="bg-gray-50 text-gray-600">
+      <tr>
+        <th class="text-left px-4 py-3">หลักสูตร</th>
+        <th class="text-center px-4 py-3">ผู้เรียน</th>
+        <th class="text-center px-4 py-3">เรียนจบ</th>
+        <th class="text-center px-4 py-3">ใบประกาศ</th>
+        <th class="text-right px-4 py-3">จัดการ</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-100">
+      {% for course in courses %}
+      {% with stats=course_stats|get_item:course.pk %}
+      <tr>
+        <td class="px-4 py-3">
+          <div class="font-medium text-gray-900">{{ course.title }}</div>
+          <div class="text-xs {% if course.is_active %}text-green-600{% else %}text-gray-400{% endif %}">
+            {% if course.is_active %}เปิดใช้งาน{% else %}ปิดใช้งาน{% endif %}
+          </div>
+        </td>
+        <td class="text-center px-4 py-3">{{ stats.enrollment|default:0 }}</td>
+        <td class="text-center px-4 py-3">{{ stats.completed|default:0 }}</td>
+        <td class="text-center px-4 py-3">{{ stats.certificates|default:0 }}</td>
+        <td class="text-right px-4 py-3 space-x-2">
+          <a href="{% url 'staff-course-edit' course.pk %}" class="text-teal-700 hover:underline">แก้ไข</a>
+          <a href="{% url 'staff-course-report' course.pk %}" class="text-teal-700 hover:underline">รายงาน</a>
+        </td>
+      </tr>
+      {% endwith %}
+      {% empty %}
+      <tr><td colspan="5" class="px-4 py-8 text-center text-gray-400">ยังไม่มีหลักสูตร</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

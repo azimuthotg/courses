@@ -13,13 +13,56 @@
   }
   body {
     margin: 0;
-    padding: 40px 60px;
+    padding: 0;
     font-family: "Sarabun", "TH Sarabun New", sans-serif;
     background: #ffffff;
-    color: #1e3a5f;
+    color: #134e4a;
+  }
+  .certificate-page {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    min-height: 595pt;
+    overflow: hidden;
+  }
+  .certificate-bg {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+  }
+  .certificate-overlay {
+    position: absolute;
+    left: 60pt;
+    right: 60pt;
+    top: 215pt;
+    text-align: center;
+  }
+  .overlay-name {
+    font-size: 30pt;
+    font-weight: bold;
+    color: #134e4a;
+    margin-bottom: 22pt;
+  }
+  .overlay-course-label {
+    font-size: 13pt;
+    color: #444;
+    margin-bottom: 6pt;
+  }
+  .overlay-course {
+    font-size: 18pt;
+    font-weight: bold;
+    color: #134e4a;
+  }
+  .overlay-serial {
+    font-size: 10pt;
+    color: #555;
+    margin-top: 18pt;
   }
   .border-frame {
-    border: 6px double #1e3a5f;
+    margin: 40px 60px;
+    border: 6px double #134e4a;
     padding: 40px 60px;
     min-height: 520px;
     text-align: center;
@@ -27,13 +70,13 @@
   .org-name {
     font-size: 16pt;
     font-weight: bold;
-    color: #1e3a5f;
+    color: #134e4a;
     margin-bottom: 6px;
   }
   .cert-title {
     font-size: 32pt;
     font-weight: bold;
-    color: #b8860b;
+    color: #d97706;
     margin: 20px 0 10px;
     letter-spacing: 4px;
   }
@@ -50,8 +93,8 @@
   .recipient-name {
     font-size: 24pt;
     font-weight: bold;
-    color: #1e3a5f;
-    border-bottom: 2px solid #b8860b;
+    color: #134e4a;
+    border-bottom: 2px solid #d97706;
     display: inline-block;
     padding-bottom: 4px;
     margin: 0 0 20px;
@@ -65,7 +108,7 @@
   .course-name {
     font-size: 16pt;
     font-weight: bold;
-    color: #1e3a5f;
+    color: #134e4a;
     margin-bottom: 30px;
   }
   .date-text {
@@ -85,7 +128,7 @@
   .signature-name {
     font-size: 11pt;
     font-weight: bold;
-    color: #1e3a5f;
+    color: #134e4a;
   }
   .signature-title {
     font-size: 10pt;
@@ -93,13 +136,24 @@
   }
   .divider {
     border: none;
-    border-top: 1px solid #b8860b;
+    border-top: 1px solid #d97706;
     margin: 16px auto;
     width: 200px;
   }
 </style>
 </head>
 <body>
+{% if course.certificate_background %}
+<div class="certificate-page">
+  <img class="certificate-bg" src="{{ course.certificate_background.url }}" alt="">
+  <div class="certificate-overlay">
+    <div class="overlay-name">{{ user.get_full_name }}</div>
+    <div class="overlay-course-label">ผ่านหลักสูตร</div>
+    <div class="overlay-course">{{ course.title }}</div>
+    <div class="overlay-serial">เลขที่ใบประกาศนียบัตร: {{ certificate.serial_number }}</div>
+  </div>
+</div>
+{% else %}
 <div class="border-frame">
 
   <div class="org-name">สำนักวิทยบริการและเทคโนโลยีสารสนเทศ</div>
@@ -119,6 +173,9 @@
   <div class="date-text">
     เมื่อวันที่ {{ certificate.issued_at|date:"j F Y" }}
   </div>
+  <p style="font-size: 10px; color: #555; text-align: center; margin-top: 8px;">
+    เลขที่ใบประกาศนียบัตร: {{ certificate.serial_number }}
+  </p>
 
   <div class="signature-section">
     <div class="signature-line">
@@ -128,5 +185,6 @@
   </div>
 
 </div>
+{% endif %}
 </body>
 </html>

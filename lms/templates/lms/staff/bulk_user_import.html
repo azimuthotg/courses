@@ -1,0 +1,42 @@
+{% extends 'lms/staff/base_staff.html' %}
+
+{% block title %}นำเข้าผู้ใช้ CSV — NPU Library LMS{% endblock %}
+
+{% block staff_content %}
+<nav class="text-sm text-gray-500 mb-4" aria-label="breadcrumb">
+  <ol class="flex items-center gap-1">
+    <li><a href="{% url 'staff-dashboard' %}" class="hover:text-teal-700">จัดการ</a></li>
+    <li class="text-gray-300">/</li>
+    <li class="font-medium text-gray-700">นำเข้าผู้ใช้ CSV</li>
+  </ol>
+</nav>
+
+<div class="max-w-2xl">
+  <h1 class="text-2xl font-bold text-gray-900 mb-6">นำเข้าผู้ใช้จาก CSV</h1>
+
+  <div class="bg-white rounded-xl shadow p-6 mb-6">
+    <h2 class="font-semibold text-gray-800 mb-3">รูปแบบไฟล์ CSV</h2>
+    <code class="block bg-gray-50 rounded p-3 text-xs text-gray-700 whitespace-pre">username,first_name,last_name,email,department,password,is_staff,line_user_id
+staff001,สมชาย,ใจดี,somchai@npu.ac.th,สำนักวิทยบริการ,Pass1234!,False,
+staff002,สมหญิง,รักดี,somying@npu.ac.th,สำนักวิทยบริการ,Pass1234!,True,Uxxxxx</code>
+    <ul class="mt-3 text-sm text-gray-500 space-y-1">
+      <li>• username ที่ซ้ำกับในระบบจะถูกข้ามโดยอัตโนมัติ</li>
+      <li>• ไฟล์ต้องเป็น UTF-8 หรือ UTF-8 with BOM</li>
+      <li>• line_user_id และ email เว้นว่างได้</li>
+    </ul>
+  </div>
+
+  <form method="post" enctype="multipart/form-data" class="bg-white rounded-xl shadow p-6">
+    {% csrf_token %}
+    <label class="block text-sm font-medium text-gray-700 mb-2">เลือกไฟล์ CSV</label>
+    <input type="file" name="csv_file" accept=".csv"
+           class="block w-full text-sm text-gray-500 border border-gray-300 rounded-lg p-2
+                  file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0
+                  file:bg-teal-800 file:text-white file:text-sm hover:file:bg-teal-700">
+    <button type="submit"
+            class="mt-4 px-6 py-2 bg-teal-800 text-white text-sm rounded-lg hover:bg-teal-700 transition">
+      นำเข้า
+    </button>
+  </form>
+</div>
+{% endblock %}

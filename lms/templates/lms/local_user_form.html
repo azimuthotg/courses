@@ -5,7 +5,7 @@
 {% block content %}
 <div class="max-w-2xl mx-auto">
   <div class="mb-4">
-    <a href="{% url 'course-list' %}" class="text-blue-600 hover:underline text-sm">← กลับหน้าหลัก</a>
+    <a href="{% url 'course-list' %}" class="text-teal-700 hover:underline text-sm">← กลับหน้าหลัก</a>
   </div>
 
   <div class="bg-white rounded-xl shadow p-6">
@@ -54,6 +54,18 @@
           {% for error in form.department.errors %}<p class="text-red-600 text-xs mt-1">{{ error }}</p>{% endfor %}
         </div>
 
+        <div class="md:col-span-2">
+          <label for="{{ form.line_user_id.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+            LINE User ID
+            <span class="text-gray-400 font-normal">(สำหรับแจ้งเตือน — ไม่บังคับ)</span>
+          </label>
+          {{ form.line_user_id }}
+          <p class="text-xs text-gray-400 mt-1">
+            ให้นักศึกษา follow LINE OA แล้ว staff นำ LINE User ID มาใส่เพื่อใช้แจ้งเตือน
+          </p>
+          {% for error in form.line_user_id.errors %}<p class="text-red-600 text-xs mt-1">{{ error }}</p>{% endfor %}
+        </div>
+
         <div>
           <label for="{{ form.password1.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">รหัสผ่าน</label>
           {{ form.password1 }}
@@ -84,7 +96,7 @@
           ยกเลิก
         </a>
         <button type="submit"
-                class="px-6 py-2.5 rounded-lg bg-blue-700 hover:bg-blue-600 text-white text-sm font-semibold transition">
+                class="px-6 py-2.5 rounded-lg bg-teal-800 hover:bg-teal-700 text-white text-sm font-semibold transition">
           สร้างผู้ใช้
         </button>
       </div>

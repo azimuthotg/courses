@@ -3,6 +3,16 @@
 {% block title %}ผลการสอบ — {{ course.title }}{% endblock %}
 
 {% block content %}
+<nav class="text-sm text-gray-500 mb-4" aria-label="breadcrumb">
+  <ol class="flex items-center gap-1">
+    <li><a href="{% url 'course-list' %}" class="hover:text-teal-700">หน้าแรก</a></li>
+    <li class="text-gray-300">/</li>
+    <li><a href="{% url 'course-detail' course.pk %}" class="hover:text-teal-700">{{ course.title }}</a></li>
+    <li class="text-gray-300">/</li>
+    <li class="text-gray-700 font-medium">ผลการทดสอบ</li>
+  </ol>
+</nav>
+
 <div class="max-w-xl mx-auto text-center">
 
   <!-- Result Card -->
@@ -24,7 +34,7 @@
     <h1 class="text-2xl font-bold text-red-600 mb-1">ไม่ผ่านการสอบ</h1>
     {% endif %}
 
-    <p class="text-gray-500 text-sm">{{ quiz.get_quiz_type_display }} — {{ course.title }}</p>
+    <p class="text-gray-500 text-sm">{{ quiz_title }} — {{ course.title }}</p>
 
     <!-- Score Display -->
     <div class="mt-6 bg-gray-50 rounded-xl p-5">
@@ -32,26 +42,52 @@
         {{ attempt.score_percentage|floatformat:1 }}%
       </div>
       <p class="text-gray-500 text-sm mt-1">ตอบถูก {{ correct }} จาก {{ total }} ข้อ</p>
-      <p class="text-gray-400 text-xs mt-1">เกณฑ์ผ่าน 70%</p>
+      <p class="text-gray-400 text-xs mt-1">เกณฑ์ผ่าน {{ course.pass_threshold }}%</p>
     </div>
 
   </div>
 
+  {% if answer_review %}
+  <div class="mt-6 bg-white rounded-xl shadow p-6 text-left">
+    <h3 class="text-lg font-semibold text-gray-800 mb-4">ตรวจคำตอบ</h3>
+    <div class="space-y-4">
+      {% for item in answer_review %}
+      <div class="border rounded-lg p-4
+                  {% if item.is_correct %}border-green-200 bg-green-50
+                  {% else %}border-red-200 bg-red-50{% endif %}">
+        <p class="font-medium text-gray-800 mb-2">
+          ข้อ {{ forloop.counter }}: {{ item.question }}
+        </p>
+        <p class="text-sm {% if item.is_correct %}text-green-700{% else %}text-red-700{% endif %}">
+          คำตอบของคุณ: {{ item.user_answer }}
+          {% if item.is_correct %}✓{% else %}✗{% endif %}
+        </p>
+        {% if not item.is_correct %}
+        <p class="text-sm text-gray-600 mt-1">
+          คำตอบที่ถูกต้อง: <span class="font-medium text-green-700">{{ item.correct_answer }}</span>
+        </p>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
   <!-- Actions -->
   <div class="flex flex-col sm:flex-row gap-3 justify-center">
     <a href="{% url 'course-detail' course.pk %}"
-       class="bg-blue-700 hover:bg-blue-600 text-white text-sm font-medium px-6 py-2.5 rounded-xl transition">
+       class="bg-teal-800 hover:bg-teal-700 text-white text-sm font-medium px-6 py-2.5 rounded-xl transition">
       กลับหน้าหลักสูตร
     </a>
     {% if not attempt.is_passed %}
-    <a href="{% url 'quiz' course.pk quiz.quiz_type %}"
+    <a href="{% url 'quiz' course.pk quiz_type %}"
        class="bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium px-6 py-2.5 rounded-xl transition">
       ทำแบบทดสอบอีกครั้ง
     </a>
     {% endif %}
-    {% if attempt.is_passed and quiz.quiz_type == 'post' %}
+    {% if attempt.is_passed and quiz_type == 'post' %}
     <a href="{% url 'certificate' course.pk %}"
-       class="bg-yellow-500 hover:bg-yellow-400 text-white text-sm font-medium px-6 py-2.5 rounded-xl transition">
+       class="bg-amber-500 hover:bg-amber-400 text-white text-sm font-medium px-6 py-2.5 rounded-xl transition">
       ดาวน์โหลดใบประกาศนียบัตร
     </a>
     {% endif %}

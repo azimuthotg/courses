@@ -1,0 +1,36 @@
+flowchart TD
+    A([Login ด้วย\nis_staff=True]) --> B[Staff Dashboard\n/staff/]
+    B --> C[ดูสถิติทุกวิชา\nenrollment / completed / certificate]
+    C --> D{เลือกทำอะไร}
+
+    D -->|จัดการวิชา| E["/staff/courses/\nรายวิชาทั้งหมด"]
+    E --> F{Course CRUD}
+    F -->|สร้าง| G["/staff/courses/create/\nชื่อวิชา, คำอธิบาย,\nthumbnail, require_post_test"]
+    F -->|แก้ไข| H["/staff/courses/id/edit/"]
+    F -->|ลบ| I[ยืนยัน → ลบ Course\ncascade ทุก record ที่เกี่ยวข้อง]
+    G & I --> E
+
+    H --> J{จัดการเนื้อหาใน Course}
+
+    J -->|Lesson| K[Lesson CRUD]
+    K -->|สร้าง| L["/lessons/create/\ntitle, YouTube ID, order"]
+    K -->|แก้ไข| M["/lessons/id/edit/"]
+    K -->|ลบ| N[ยืนยัน → ลบ Lesson]
+    L & M & N --> H
+
+    J -->|Quiz| O[ชุดคำถามกลาง\nใช้ร่วมกัน Pre/Post]
+    O --> R[get_or_create Quiz record\nแสดงรายการคำถาม]
+    R --> S{Question CRUD}
+    S -->|เพิ่ม| T["/questions/create/\nข้อความ, ตัวเลือก A-D\nเลือกข้อที่ถูก"]
+    S -->|แก้ไข| U["/questions/id/edit/"]
+    S -->|ลบ| V[ยืนยัน → ลบ Question\ncascade Answers]
+    T & U & V --> R
+
+    D -->|ดูรายงาน| W["/staff/courses/id/report/"]
+    W --> X[enrollment_count\ncompleted_count\ncertificate_count\npass_rate % / avg_score %]
+    X --> D
+
+    D -->|สร้าง User| Y["/users/create/\nLocalUserCreateView"]
+    Y --> Z[กรอก username, password,\nชื่อ, แผนก, is_staff]
+    Z --> AA[บันทึก local User\nform reset สร้างต่อได้เลย]
+    AA --> Y

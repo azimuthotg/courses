@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="flex min-h-screen">
+  {% include 'lms/staff/_sidebar.html' %}
+  <main class="flex-1 bg-amber-50 p-6 overflow-auto">
+    {% block staff_content %}{% endblock %}
+  </main>
+</div>
+{% endblock %}

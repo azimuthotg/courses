@@ -1,0 +1,47 @@
+{% extends 'lms/staff/base_staff.html' %}
+
+{% block title %}จัดการแบบทดสอบ — NPU Library LMS{% endblock %}
+
+{% block staff_content %}
+<nav class="text-sm text-gray-500 mb-4" aria-label="breadcrumb">
+  <ol class="flex items-center gap-1">
+    <li><a href="{% url 'staff-dashboard' %}" class="hover:text-teal-700">จัดการ</a></li>
+    <li class="text-gray-300">/</li>
+    <li><a href="{% url 'staff-course-edit' course.pk %}" class="hover:text-teal-700">{{ course.title }}</a></li>
+    <li class="text-gray-300">/</li>
+    <li class="text-gray-700 font-medium">แบบทดสอบ</li>
+  </ol>
+</nav>
+<div class="mb-4"><a href="{% url 'staff-course-edit' course.pk %}" class="text-teal-700 hover:underline text-sm">← กลับหลักสูตร</a></div>
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <h1 class="text-2xl font-bold text-gray-900">ชุดคำถาม Pre-test / Post-test</h1>
+    <p class="text-sm text-gray-500 mt-1">{{ course.title }}</p>
+    <p class="text-sm text-teal-700 mt-1">คำถามชุดนี้ใช้ร่วมกันทั้งแบบทดสอบก่อนเรียนและหลังเรียน</p>
+  </div>
+  <a href="{% url 'staff-question-create' course.pk 'post' %}" class="bg-teal-800 hover:bg-teal-700 text-white text-sm px-4 py-2 rounded-lg font-medium">เพิ่มคำถาม</a>
+</div>
+
+<div class="bg-white rounded-xl shadow overflow-hidden">
+  <table class="w-full text-sm">
+    <thead class="bg-gray-50 text-gray-600">
+      <tr><th class="text-left px-4 py-3">ลำดับ</th><th class="text-left px-4 py-3">คำถาม</th><th class="text-center px-4 py-3">ตัวเลือก</th><th class="text-right px-4 py-3">จัดการ</th></tr>
+    </thead>
+    <tbody class="divide-y divide-gray-100">
+      {% for question in questions %}
+      <tr>
+        <td class="px-4 py-3">{{ question.order }}</td>
+        <td class="px-4 py-3">{{ question.text }}</td>
+        <td class="text-center px-4 py-3">{{ question.answers.count }}</td>
+        <td class="text-right px-4 py-3 space-x-2">
+          <a href="{% url 'staff-question-edit' course.pk 'post' question.pk %}" class="text-teal-700 hover:underline">แก้ไข</a>
+          <a href="{% url 'staff-question-delete' course.pk 'post' question.pk %}" class="text-red-600 hover:underline">ลบ</a>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="4" class="px-4 py-8 text-center text-gray-400">ยังไม่มีคำถาม</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

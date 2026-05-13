@@ -1,0 +1,15 @@
+{% extends 'lms/staff/base_staff.html' %}
+
+{% block title %}ลบบทเรียน — NPU Library LMS{% endblock %}
+
+{% block staff_content %}
+<div class="max-w-xl mx-auto bg-white rounded-xl shadow p-6">
+  <h1 class="text-xl font-bold text-red-600 mb-3">ยืนยันลบบทเรียน</h1>
+  <p class="text-gray-700 mb-6">ต้องการลบ "{{ object.title }}" จาก "{{ course.title }}" ใช่หรือไม่?</p>
+  <form method="post" class="flex justify-end gap-3">
+    {% csrf_token %}
+    <a href="{% url 'staff-course-edit' course.pk %}" class="px-5 py-2.5 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium">ยกเลิก</a>
+    <button type="submit" class="px-6 py-2.5 rounded-lg bg-red-600 hover:bg-red-500 text-white text-sm font-semibold">ลบบทเรียน</button>
+  </form>
+</div>
+{% endblock %}

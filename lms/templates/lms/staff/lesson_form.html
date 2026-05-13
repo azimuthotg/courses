@@ -1,0 +1,37 @@
+{% extends 'lms/staff/base_staff.html' %}
+
+{% block title %}{% if object %}แก้ไขบทเรียน{% else %}เพิ่มบทเรียน{% endif %} — NPU Library LMS{% endblock %}
+
+{% block staff_content %}
+<nav class="text-sm text-gray-500 mb-4" aria-label="breadcrumb">
+  <ol class="flex items-center gap-1">
+    <li><a href="{% url 'staff-dashboard' %}" class="hover:text-teal-700">จัดการ</a></li>
+    <li class="text-gray-300">/</li>
+    <li><a href="{% url 'staff-course-edit' course.pk %}" class="hover:text-teal-700">{{ course.title }}</a></li>
+    <li class="text-gray-300">/</li>
+    <li class="text-gray-700 font-medium">บทเรียน</li>
+  </ol>
+</nav>
+<div class="max-w-2xl mx-auto">
+  <div class="mb-4"><a href="{% url 'staff-course-edit' course.pk %}" class="text-teal-700 hover:underline text-sm">← กลับหลักสูตร</a></div>
+  <div class="bg-white rounded-xl shadow p-6">
+    <h1 class="text-2xl font-bold text-gray-900 mb-1">{% if object %}แก้ไขบทเรียน{% else %}เพิ่มบทเรียน{% endif %}</h1>
+    <p class="text-sm text-gray-500 mb-6">{{ course.title }}</p>
+    <form method="post" class="space-y-5">
+      {% csrf_token %}
+      {% for field in form %}
+      <div>
+        <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">{{ field.label }}</label>
+        {{ field }}
+        {% if field.help_text %}<p class="text-xs text-gray-400 mt-1">{{ field.help_text }}</p>{% endif %}
+        {% for error in field.errors %}<p class="text-red-600 text-xs mt-1">{{ error }}</p>{% endfor %}
+      </div>
+      {% endfor %}
+      <div class="flex justify-end gap-3">
+        <a href="{% url 'staff-course-edit' course.pk %}" class="px-5 py-2.5 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium">ยกเลิก</a>
+        <button type="submit" class="px-6 py-2.5 rounded-lg bg-teal-800 hover:bg-teal-700 text-white text-sm font-semibold">บันทึก</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

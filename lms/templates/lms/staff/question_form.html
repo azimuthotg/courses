@@ -1,0 +1,44 @@
+{% extends 'lms/staff/base_staff.html' %}
+
+{% block title %}{% if object %}แก้ไขคำถาม{% else %}เพิ่มคำถาม{% endif %} — NPU Library LMS{% endblock %}
+
+{% block staff_content %}
+<div class="max-w-3xl mx-auto">
+  <div class="mb-4"><a href="{% url 'staff-quiz-edit' course.pk 'post' %}" class="text-teal-700 hover:underline text-sm">← กลับชุดคำถาม</a></div>
+  <div class="bg-white rounded-xl shadow p-6">
+    <h1 class="text-2xl font-bold text-gray-900 mb-1">{% if object %}แก้ไขคำถาม{% else %}เพิ่มคำถาม{% endif %}</h1>
+    <p class="text-sm text-gray-500 mb-6">ชุดคำถาม Pre-test / Post-test — {{ course.title }}</p>
+    <form method="post" class="space-y-5">
+      {% csrf_token %}
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">{{ form.question_text.label }}</label>
+        {{ form.question_text }}
+        {% for error in form.question_text.errors %}<p class="text-red-600 text-xs mt-1">{{ error }}</p>{% endfor %}
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">{{ form.question_order.label }}</label>
+        {{ form.question_order }}
+        {% for error in form.question_order.errors %}<p class="text-red-600 text-xs mt-1">{{ error }}</p>{% endfor %}
+      </div>
+      <div class="space-y-3">
+        <p class="text-sm font-medium text-gray-700">ตัวเลือกและคำตอบที่ถูกต้อง</p>
+        {% for choice_value, choice_label in form.correct_answer.field.choices %}
+        <div class="flex items-center gap-3">
+          <input type="radio" name="{{ form.correct_answer.name }}" value="{{ choice_value }}" {% if form.correct_answer.value|stringformat:"s" == choice_value|stringformat:"s" %}checked{% endif %} class="h-4 w-4 text-teal-700">
+          {% if choice_value == '1' %}{{ form.answer_1 }}{% elif choice_value == '2' %}{{ form.answer_2 }}{% elif choice_value == '3' %}{{ form.answer_3 }}{% else %}{{ form.answer_4 }}{% endif %}
+        </div>
+        {% endfor %}
+        {% for error in form.correct_answer.errors %}<p class="text-red-600 text-xs mt-1">{{ error }}</p>{% endfor %}
+        {% for error in form.answer_1.errors %}<p class="text-red-600 text-xs mt-1">{{ error }}</p>{% endfor %}
+        {% for error in form.answer_2.errors %}<p class="text-red-600 text-xs mt-1">{{ error }}</p>{% endfor %}
+        {% for error in form.answer_3.errors %}<p class="text-red-600 text-xs mt-1">{{ error }}</p>{% endfor %}
+        {% for error in form.answer_4.errors %}<p class="text-red-600 text-xs mt-1">{{ error }}</p>{% endfor %}
+      </div>
+      <div class="flex justify-end gap-3">
+        <a href="{% url 'staff-quiz-edit' course.pk 'post' %}" class="px-5 py-2.5 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium">ยกเลิก</a>
+        <button type="submit" class="px-6 py-2.5 rounded-lg bg-teal-800 hover:bg-teal-700 text-white text-sm font-semibold">บันทึก</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

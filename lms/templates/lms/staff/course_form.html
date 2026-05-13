@@ -1,0 +1,87 @@
+{% extends 'lms/staff/base_staff.html' %}
+
+{% block title %}{% if object %}แก้ไขหลักสูตร{% else %}เพิ่มหลักสูตร{% endif %} — NPU Library LMS{% endblock %}
+
+{% block staff_content %}
+<nav class="text-sm text-gray-500 mb-4" aria-label="breadcrumb">
+  <ol class="flex items-center gap-1">
+    <li><a href="{% url 'staff-dashboard' %}" class="hover:text-teal-700">จัดการ</a></li>
+    <li class="text-gray-300">/</li>
+    <li><a href="{% url 'staff-course-list' %}" class="hover:text-teal-700">รายวิชา</a></li>
+    <li class="text-gray-300">/</li>
+    <li class="text-gray-700 font-medium">{% if object %}{{ object.title }}{% else %}เพิ่มรายวิชา{% endif %}</li>
+  </ol>
+</nav>
+<div class="mb-4">
+  <a href="{% url 'staff-course-list' %}" class="text-teal-700 hover:underline text-sm">← กลับรายการหลักสูตร</a>
+</div>
+
+<div class="bg-white rounded-xl shadow p-6 mb-6">
+  <h1 class="text-2xl font-bold text-gray-900 mb-6">{% if object %}แก้ไขหลักสูตร{% else %}เพิ่มหลักสูตร{% endif %}</h1>
+  <form method="post" enctype="multipart/form-data" class="space-y-5">
+    {% csrf_token %}
+    {% for field in form %}
+    <div>
+      {% if field.field.widget.input_type == 'checkbox' %}
+      <label class="flex items-center gap-3 text-sm text-gray-700">{{ field }} <span>{{ field.label }}</span></label>
+      {% else %}
+      <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">{{ field.label }}</label>
+      {{ field }}
+      {% endif %}
+      {% if field.help_text %}<p class="text-xs text-gray-400 mt-1">{{ field.help_text }}</p>{% endif %}
+      {% for error in field.errors %}<p class="text-red-600 text-xs mt-1">{{ error }}</p>{% endfor %}
+    </div>
+    {% endfor %}
+    {% if object.thumbnail %}
+    <div>
+      <p class="text-xs text-gray-500 mb-1">ภาพปกปัจจุบัน</p>
+    <img src="{{ object.thumbnail.url }}" alt="{{ object.title }}" class="w-48 h-28 object-cover rounded-lg border">
+    </div>
+    {% endif %}
+    {% if object.certificate_background %}
+    <div>
+      <p class="text-xs text-gray-500 mb-1">ภาพพื้นหลังใบประกาศปัจจุบัน</p>
+      <img src="{{ object.certificate_background.url }}" alt="Certificate background" class="w-64 h-40 object-cover rounded-lg border">
+    </div>
+    {% endif %}
+    <div class="flex justify-end gap-3">
+      <a href="{% url 'staff-course-list' %}" class="px-5 py-2.5 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium">ยกเลิก</a>
+      <button type="submit" class="px-6 py-2.5 rounded-lg bg-teal-800 hover:bg-teal-700 text-white text-sm font-semibold">บันทึก</button>
+    </div>
+  </form>
+</div>
+
+{% if object %}
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+  <div class="bg-white rounded-xl shadow p-6">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-lg font-bold text-gray-900">บทเรียน</h2>
+      <a href="{% url 'staff-lesson-create' object.pk %}" class="text-sm bg-teal-800 text-white px-3 py-1.5 rounded-lg">เพิ่มบทเรียน</a>
+    </div>
+    <div class="space-y-2">
+      {% for lesson in lessons %}
+      <div class="flex items-center justify-between border rounded-lg px-3 py-2">
+        <span class="text-sm">{{ lesson.order }}. {{ lesson.title }}</span>
+        <span class="space-x-2 text-sm">
+          <a href="{% url 'staff-lesson-edit' object.pk lesson.pk %}" class="text-teal-700 hover:underline">แก้ไข</a>
+          <a href="{% url 'staff-lesson-delete' object.pk lesson.pk %}" class="text-red-600 hover:underline">ลบ</a>
+        </span>
+      </div>
+      {% empty %}
+      <p class="text-sm text-gray-400">ยังไม่มีบทเรียน</p>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="bg-white rounded-xl shadow p-6">
+    <h2 class="text-lg font-bold text-gray-900 mb-4">ชุดคำถามแบบทดสอบ</h2>
+    <div class="space-y-3">
+      <a href="{% url 'staff-quiz-edit' object.pk 'post' %}" class="block border rounded-lg px-4 py-3 hover:bg-gray-50">
+        <div class="font-medium text-gray-900">คำถามชุดเดียวสำหรับ Pre-test และ Post-test</div>
+        <div class="text-sm text-gray-500">{% if shared_quiz %}มี {{ shared_quiz.questions.count }} คำถาม{% else %}ยังไม่มีชุดคำถาม ระบบจะสร้างให้เมื่อเข้าแก้ไข{% endif %}</div>
+      </a>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

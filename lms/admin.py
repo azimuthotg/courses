@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 
 from .models import (
+    AuditLog,
     Answer,
     Certificate,
     Course,
@@ -17,12 +18,12 @@ from .models import (
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
     fieldsets = BaseUserAdmin.fieldsets + (
-        ('LMS profile', {'fields': ('department',)}),
+        ('LMS profile', {'fields': ('department', 'line_user_id')}),
     )
     add_fieldsets = BaseUserAdmin.add_fieldsets + (
-        ('LMS profile', {'fields': ('department',)}),
+        ('LMS profile', {'fields': ('department', 'line_user_id')}),
     )
-    list_display = ('username', 'email', 'first_name', 'last_name', 'department', 'is_staff')
+    list_display = ('username', 'email', 'first_name', 'last_name', 'department', 'line_user_id', 'is_staff')
     list_filter = BaseUserAdmin.list_filter + ('department',)
     search_fields = BaseUserAdmin.search_fields + ('department',)
 
@@ -43,7 +44,7 @@ class QuizInline(admin.TabularInline):
 
 @admin.register(Course)
 class CourseAdmin(admin.ModelAdmin):
-    list_display = ('title', 'is_active', 'require_post_test', 'lesson_count', 'created_at')
+    list_display = ('title', 'is_active', 'require_post_test', 'pass_threshold', 'lesson_count', 'created_at')
     list_filter = ('is_active', 'require_post_test', 'created_at')
     search_fields = ('title', 'description')
     readonly_fields = ('created_at',)
@@ -118,15 +119,30 @@ class UserProgressAdmin(admin.ModelAdmin):
 
 @admin.register(UserQuizAttempt)
 class UserQuizAttemptAdmin(admin.ModelAdmin):
-    list_display = ('user', 'quiz', 'score_percentage', 'is_passed', 'attempted_at')
-    list_filter = ('is_passed', 'quiz__quiz_type', 'quiz__course', 'attempted_at')
+    list_display = ('user', 'quiz', 'attempt_type', 'score_percentage', 'is_passed', 'attempted_at')
+    list_filter = ('attempt_type', 'is_passed', 'quiz__course', 'attempted_at')
     search_fields = ('user__username', 'user__first_name', 'user__last_name', 'quiz__course__title')
     readonly_fields = ('attempted_at',)
 
 
 @admin.register(Certificate)
 class CertificateAdmin(admin.ModelAdmin):
-    list_display = ('user', 'course', 'issued_at')
+    list_display = ('user', 'course', 'serial_number', 'issued_at')
     list_filter = ('course', 'issued_at')
-    search_fields = ('user__username', 'user__first_name', 'user__last_name', 'course__title')
+    search_fields = ('user__username', 'user__first_name', 'user__last_name', 'course__title', 'serial_number')
     readonly_fields = ('issued_at',)
+
+
+@admin.register(AuditLog)
+class AuditLogAdmin(admin.ModelAdmin):
+    list_display = ('created_at', 'user', 'action', 'description', 'ip_address')
+    list_filter = ('action', 'created_at')
+    search_fields = ('user__username', 'description')
+    readonly_fields = ('user', 'action', 'description', 'ip_address', 'created_at')
+    ordering = ('-created_at',)
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False

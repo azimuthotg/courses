@@ -3,9 +3,13 @@
 {% block title %}{{ course.title }} — NPU Library LMS{% endblock %}
 
 {% block content %}
-<div class="mb-4">
-  <a href="{% url 'course-list' %}" class="text-blue-600 hover:underline text-sm">← กลับหน้าหลัก</a>
-</div>
+<nav class="text-sm text-gray-500 mb-4" aria-label="breadcrumb">
+  <ol class="flex items-center gap-1">
+    <li><a href="{% url 'course-list' %}" class="hover:text-teal-700">หน้าแรก</a></li>
+    <li class="text-gray-300">/</li>
+    <li class="text-gray-700 font-medium">{{ course.title }}</li>
+  </ol>
+</nav>
 
 <!-- Course Header -->
 <div class="bg-white rounded-xl shadow p-6 mb-6">
@@ -19,6 +23,16 @@
       {% if course.description %}
       <p class="text-gray-600 text-sm leading-relaxed">{{ course.description }}</p>
       {% endif %}
+      <div class="mt-4">
+        <div class="flex justify-between text-sm text-gray-500 mb-1">
+          <span>ความคืบหน้า</span>
+          <span>{{ lessons_done }}/{{ lessons_total }} บท ({{ progress_pct }}%)</span>
+        </div>
+        <div class="w-full bg-gray-200 rounded-full h-2">
+          <div class="bg-teal-600 h-2 rounded-full transition-all duration-300"
+               style="width: {{ progress_pct }}%"></div>
+        </div>
+      </div>
       <div class="mt-4 flex flex-wrap gap-3">
         {% if progress.status == 'completed' %}
           <span class="inline-flex items-center gap-1 bg-green-100 text-green-700 text-sm px-3 py-1 rounded-full font-medium">
@@ -26,12 +40,12 @@
           </span>
           {% if certificate %}
           <a href="{% url 'certificate' course.pk %}"
-             class="inline-flex items-center gap-1 bg-yellow-500 hover:bg-yellow-400 text-white text-sm px-4 py-1.5 rounded-full font-medium transition">
+             class="inline-flex items-center gap-1 bg-amber-500 hover:bg-amber-400 text-white text-sm px-4 py-1.5 rounded-full font-medium transition">
             ดาวน์โหลดใบประกาศนียบัตร
           </a>
           {% endif %}
         {% elif progress.status == 'in_progress' %}
-          <span class="inline-flex items-center gap-1 bg-yellow-100 text-yellow-700 text-sm px-3 py-1 rounded-full font-medium">
+          <span class="inline-flex items-center gap-1 bg-amber-100 text-amber-700 text-sm px-3 py-1 rounded-full font-medium">
             กำลังเรียน
           </span>
         {% endif %}
@@ -52,13 +66,13 @@
       <a href="{% url 'lesson' course.pk lesson.pk %}"
          class="flex items-center gap-4 bg-white rounded-lg shadow-sm hover:shadow-md p-4 transition group">
         <div class="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold
-          {% if lesson in watched %}bg-green-100 text-green-700{% else %}bg-blue-100 text-blue-700{% endif %}">
+          {% if lesson in watched %}bg-green-100 text-green-700{% else %}bg-teal-100 text-teal-700{% endif %}">
           {% if lesson in watched %}✓{% else %}{{ lesson.order }}{% endif %}
         </div>
-        <span class="flex-1 text-gray-800 group-hover:text-blue-700 transition text-sm font-medium">
+        <span class="flex-1 text-gray-800 group-hover:text-teal-700 transition text-sm font-medium">
           {{ lesson.title }}
         </span>
-        <svg class="w-4 h-4 text-gray-400 group-hover:text-blue-500 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg class="w-4 h-4 text-gray-400 group-hover:text-teal-600 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
         </svg>
       </a>
@@ -77,7 +91,7 @@
     <div class="bg-white rounded-xl shadow p-4">
       <h3 class="font-semibold text-gray-700 mb-2">แบบทดสอบก่อนเรียน</h3>
       <a href="{% url 'quiz' course.pk 'pre' %}"
-         class="block w-full text-center bg-blue-600 hover:bg-blue-500 text-white text-sm py-2 rounded-lg transition">
+         class="block w-full text-center bg-teal-700 hover:bg-teal-600 text-white text-sm py-2 rounded-lg transition">
         ทำแบบทดสอบ
       </a>
     </div>
@@ -95,17 +109,17 @@
       </p>
       {% endif %}
       <a href="{% url 'quiz' course.pk 'post' %}"
-         class="block w-full text-center bg-orange-500 hover:bg-orange-400 text-white text-sm py-2 rounded-lg transition">
+         class="block w-full text-center bg-amber-600 hover:bg-amber-500 text-white text-sm py-2 rounded-lg transition">
         {% if best_attempt and best_attempt.is_passed %}ทำแบบทดสอบอีกครั้ง{% else %}ทำแบบทดสอบ{% endif %}
       </a>
     </div>
     {% endif %}
 
     {% if progress.status == 'completed' and certificate %}
-    <div class="bg-gradient-to-br from-yellow-50 to-orange-50 border border-yellow-200 rounded-xl p-4 text-center">
-      <p class="text-yellow-700 font-semibold text-sm mb-2">ยินดีด้วย! คุณผ่านหลักสูตรนี้แล้ว</p>
+    <div class="bg-gradient-to-br from-amber-50 to-amber-100 border border-amber-200 rounded-xl p-4 text-center">
+      <p class="text-amber-700 font-semibold text-sm mb-2">ยินดีด้วย! คุณผ่านหลักสูตรนี้แล้ว</p>
       <a href="{% url 'certificate' course.pk %}"
-         class="inline-block bg-yellow-500 hover:bg-yellow-400 text-white text-sm px-4 py-2 rounded-lg transition font-medium">
+         class="inline-block bg-amber-500 hover:bg-amber-400 text-white text-sm px-4 py-2 rounded-lg transition font-medium">
         ดาวน์โหลดใบประกาศนียบัตร
       </a>
     </div>

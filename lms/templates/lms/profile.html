@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% load lms_extras %}
+
+{% block title %}โปรไฟล์ของฉัน — NPU Library LMS{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 py-6">
+  <nav class="text-sm text-gray-500 mb-4" aria-label="breadcrumb">
+    <ol class="flex items-center gap-1">
+      <li><a href="{% url 'course-list' %}" class="hover:text-teal-700">หน้าแรก</a></li>
+      <li class="text-gray-300">/</li>
+      <li class="text-gray-700 font-medium">โปรไฟล์ของฉัน</li>
+    </ol>
+  </nav>
+
+  <div class="bg-white rounded-xl shadow p-6 mb-6">
+    <h1 class="text-2xl font-bold text-gray-800">{{ user.get_full_name|default:user.username }}</h1>
+    <p class="text-gray-500 text-sm mt-1">{{ user.department }}</p>
+    <p class="text-gray-400 text-xs mt-1">{{ user.username }}</p>
+    <a href="{% url 'learner-transcript' %}"
+       class="inline-flex items-center gap-2 px-4 py-2 bg-teal-800 text-white text-sm rounded-lg hover:bg-teal-700 transition mt-3">
+      ดาวน์โหลด Transcript PDF
+    </a>
+  </div>
+
+  <h2 class="text-lg font-semibold text-gray-800 mb-3">ประวัติการเรียน</h2>
+  {% if progress_list %}
+  <div class="space-y-4">
+    {% for progress in progress_list %}
+    {% with best=best_attempts|get_item:progress.course_id cert=cert_map|get_item:progress.course_id %}
+    <div class="bg-white rounded-xl shadow p-5 flex items-center justify-between gap-4">
+      <div class="flex-1">
+        <a href="{% url 'course-detail' progress.course.pk %}"
+           class="font-medium text-gray-900 hover:text-teal-700">{{ progress.course.title }}</a>
+        <div class="flex items-center gap-3 mt-2 text-sm text-gray-500">
+          {% if progress.status == 'completed' %}
+            <span class="bg-green-100 text-green-700 px-2 py-0.5 rounded-full text-xs">เรียนจบแล้ว</span>
+          {% else %}
+            <span class="bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full text-xs">กำลังเรียน</span>
+          {% endif %}
+          {% if best %}
+            <span>คะแนนดีสุด: {{ best.score_percentage|floatformat:0 }}%</span>
+          {% endif %}
+        </div>
+      </div>
+      {% if cert %}
+      <a href="{% url 'certificate' progress.course.pk %}"
+         class="flex items-center gap-1 px-3 py-1.5 bg-amber-500 text-white text-xs rounded-lg hover:bg-amber-400 transition">
+        ใบประกาศฯ
+      </a>
+      {% endif %}
+    </div>
+    {% endwith %}
+    {% endfor %}
+  </div>
+  {% else %}
+  <p class="text-gray-400 text-center py-8">ยังไม่ได้เริ่มเรียนวิชาใดเลย</p>
+  {% endif %}
+</div>
+{% endblock %}

@@ -145,6 +145,16 @@ Local user creation:
 - Form: `LocalUserCreationForm`
 - Access is restricted to authenticated `is_staff=True` users
 - Use this for staff/local accounts while student accounts continue through the NPU API backend
+- Browser coverage is in `tests/test_user_management.py`
+
+Staff content frontend:
+- URL prefix: `/staff/`
+- URL file: `lms/staff_urls.py`
+- Staff dashboard: `staff-dashboard`
+- Course CRUD, Lesson CRUD, Quiz/Question CRUD, and course report are implemented in `lms/views.py`
+- Templates live in `lms/templates/lms/staff/`
+- Access is restricted to authenticated `is_staff=True` users via `StaffRequiredMixin`
+- Browser coverage is in `tests/test_staff_content.py`
 
 ## Business Logic
 

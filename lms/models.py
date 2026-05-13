@@ -1,3 +1,6 @@
+import uuid
+from datetime import datetime
+
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.db import models
@@ -5,6 +8,12 @@ from django.db import models
 
 class User(AbstractUser):
     department = models.CharField(max_length=200, blank=True, verbose_name='หน่วยงาน')
+    line_user_id = models.CharField(
+        max_length=50,
+        blank=True,
+        help_text='LINE User ID สำหรับส่ง Push Notification',
+        verbose_name='LINE User ID',
+    )
 
     class Meta:
         verbose_name = 'ผู้ใช้งาน'
@@ -18,7 +27,14 @@ class Course(models.Model):
     title = models.CharField(max_length=300, verbose_name='ชื่อหลักสูตร')
     description = models.TextField(blank=True, verbose_name='รายละเอียด')
     thumbnail = models.ImageField(upload_to='course_thumbnails/', blank=True, null=True, verbose_name='ภาพปก')
+    certificate_background = models.ImageField(
+        upload_to='certificate_backgrounds/',
+        blank=True,
+        null=True,
+        verbose_name='ภาพพื้นหลังใบประกาศนียบัตร',
+    )
     require_post_test = models.BooleanField(default=False, verbose_name='บังคับสอบหลังเรียน')
+    pass_threshold = models.PositiveIntegerField(default=70, help_text='คะแนนขั้นต่ำที่ผ่าน (%)')
     is_active = models.BooleanField(default=True, verbose_name='เปิดใช้งาน')
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -112,8 +128,18 @@ class UserProgress(models.Model):
 
 
 class UserQuizAttempt(models.Model):
+    ATTEMPT_TYPE_CHOICES = [
+        ('pre', 'แบบทดสอบก่อนเรียน'),
+        ('post', 'แบบทดสอบหลังเรียน'),
+    ]
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='quiz_attempts')
     quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE, related_name='attempts')
+    attempt_type = models.CharField(
+        max_length=4,
+        choices=ATTEMPT_TYPE_CHOICES,
+        default='post',
+        verbose_name='ประเภทการสอบ',
+    )
     score_percentage = models.FloatField(verbose_name='คะแนน (%)')
     is_passed = models.BooleanField(default=False, verbose_name='ผ่าน')
     attempted_at = models.DateTimeField(auto_now_add=True)
@@ -124,13 +150,21 @@ class UserQuizAttempt(models.Model):
         verbose_name_plural = 'ผลการสอบ'
 
     def __str__(self):
-        return f'{self.user} — {self.quiz} — {self.score_percentage:.1f}%'
+        return f'{self.user} — {self.get_attempt_type_display()} — {self.quiz.course} — {self.score_percentage:.1f}%'
 
 
 class Certificate(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='certificates')
     course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='certificates')
     issued_at = models.DateTimeField(auto_now_add=True)
+    serial_number = models.CharField(max_length=30, unique=True, blank=True)
+
+    def save(self, *args, **kwargs):
+        if not self.serial_number:
+            year_be = datetime.now().year + 543
+            short_id = uuid.uuid4().hex[:6].upper()
+            self.serial_number = f'CERT-{year_be}-{short_id}'
+        super().save(*args, **kwargs)
 
     class Meta:
         unique_together = [('user', 'course')]
@@ -139,3 +173,39 @@ class Certificate(models.Model):
 
     def __str__(self):
         return f'{self.user} — {self.course}'
+
+
+class AuditLog(models.Model):
+    ACTION_CHOICES = [
+        ('login', 'Login'),
+        ('logout', 'Logout'),
+        ('course_complete', 'Course Completed'),
+        ('quiz_pass', 'Quiz Passed'),
+        ('quiz_fail', 'Quiz Failed'),
+        ('certificate_issued', 'Certificate Issued'),
+        ('staff_course_create', 'Course Created'),
+        ('staff_course_edit', 'Course Edited'),
+        ('staff_course_delete', 'Course Deleted'),
+        ('staff_user_create', 'User Created'),
+        ('bulk_user_import', 'Bulk User Import'),
+    ]
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='audit_logs',
+    )
+    action = models.CharField(max_length=50, choices=ACTION_CHOICES)
+    description = models.TextField(blank=True)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Audit log'
+        verbose_name_plural = 'Audit logs'
+
+    def __str__(self):
+        return f'{self.created_at:%Y-%m-%d %H:%M} | {self.user} | {self.action}'
